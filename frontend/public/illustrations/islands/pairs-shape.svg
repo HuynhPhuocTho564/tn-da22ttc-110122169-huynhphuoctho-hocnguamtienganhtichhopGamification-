@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Minimal Pairs Island: Twin islands connected by bridge -->
+  <!-- Left island - sand -->
+  <path d="M40 170 C30 130, 70 90, 120 85 C170 80, 190 100, 190 140 C190 180, 160 210, 120 215 C80 220, 40 200, 40 170Z" fill="#FDE68A" opacity="0.6"/>
+  <!-- Left island body -->
+  <path d="M50 168 C42 135, 78 98, 125 93 C165 88, 182 106, 182 142 C182 172, 155 200, 120 205 C85 210, 50 194, 50 168Z" fill="#F3E8FF"/>
+  <!-- Left island vegetation -->
+  <path d="M65 165 C58 140, 88 110, 128 105 C158 100, 172 114, 172 143 C172 168, 150 190, 120 194 C90 198, 65 186, 65 165Z" fill="#A855F7" opacity="0.5"/>
+  
+  <!-- Right island - sand -->
+  <path d="M210 160 C210 120, 240 85, 280 80 C320 75, 370 95, 375 140 C380 185, 350 220, 300 225 C250 230, 210 200, 210 160Z" fill="#FDE68A" opacity="0.6"/>
+  <!-- Right island body -->
+  <path d="M220 158 C220 125, 248 93, 283 88 C318 83, 360 100, 365 140 C370 178, 343 210, 298 215 C253 220, 220 195, 220 158Z" fill="#F3E8FF"/>
+  <!-- Right island vegetation -->
+  <path d="M235 155 C235 128, 258 102, 288 97 C318 92, 348 107, 352 140 C356 170, 335 196, 295 200 C255 204, 235 182, 235 155Z" fill="#A855F7" opacity="0.5"/>
+  
+  <!-- Bridge connecting islands -->
+  <path d="M178 145 C190 130, 210 130, 222 145" stroke="#7C3AED" stroke-width="3" stroke-dasharray="6 3" fill="none"/>
+  <line x1="185" y1="145" x2="185" y2="155" stroke="#7C3AED" stroke-width="2"/>
+  <line x1="215" y1="145" x2="215" y2="155" stroke="#7C3AED" stroke-width="2"/>
+  
+  <!-- Crystal formations -->
+  <path d="M130 130 L135 110 L140 130Z" fill="#C084FC" opacity="0.7"/>
+  <path d="M300 120 L305 100 L310 120Z" fill="#C084FC" opacity="0.7"/>
+</svg>

@@ -1,0 +1,48 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "start": "next start",
+    "lint": "eslint .",
+    "db:seed:lessons": "tsx prisma/seed_lessons.ts",
+    "db:bootstrap-admin": "tsx prisma/bootstrap_admin.ts",
+    "db:seed:learner-profiles": "tsx prisma/seed_learner_profiles.ts",
+    "db:seed:app": "tsx prisma/seed_lessons.ts && tsx prisma/bootstrap_admin.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.21.0",
+    "next": "^16.2.7",
+    "next-auth": "^5.0.0-beta.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "wavesurfer.js": "^7.12.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "^16.2.7",
+    "postcss": "^8.5.15",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

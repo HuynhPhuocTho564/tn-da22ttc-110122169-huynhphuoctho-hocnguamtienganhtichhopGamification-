@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Simple camping tent -->
+  <!-- Tent body -->
+  <path d="M16 4 L3 28 L29 28Z" fill="#F97316" opacity="0.8"/>
+  <path d="M16 4 L16 28 L29 28Z" fill="#EA580C" opacity="0.6"/>
+  <!-- Tent opening -->
+  <path d="M13 28 L16 18 L19 28Z" fill="#7C2D12"/>
+  <!-- Tent pole top -->
+  <circle cx="16" cy="3" r="1.5" fill="#92400E"/>
+  <!-- Flag on pole -->
+  <path d="M16 3 L22 6 L16 9" fill="#FBBF24" opacity="0.8"/>
+  <!-- Ground -->
+  <line x1="1" y1="28" x2="31" y2="28" stroke="#92400E" stroke-width="1.5"/>
+</svg>

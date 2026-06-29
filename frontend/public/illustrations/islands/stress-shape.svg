@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Stress Island: Volcanic mountain island -->
+  <!-- Sand/beach -->
+  <path d="M70 200 C50 170, 80 130, 130 120 C180 110, 200 100, 200 60 C200 100, 220 110, 270 120 C320 130, 350 170, 330 200 C310 240, 250 260, 200 265 C150 260, 90 240, 70 200Z" fill="#FDE68A" opacity="0.6"/>
+  <!-- Main body -->
+  <path d="M80 198 C62 172, 90 138, 135 128 C175 118, 195 110, 200 75 C205 110, 225 118, 265 128 C310 138, 338 172, 320 198 C302 232, 248 250, 200 254 C152 250, 98 232, 80 198Z" fill="#FFEDD5"/>
+  <!-- Rocky terrain -->
+  <path d="M100 195 C85 172, 108 145, 148 136 C178 128, 195 122, 200 95 C205 122, 222 128, 252 136 C292 145, 315 172, 300 195 C285 222, 240 238, 200 242 C160 238, 115 222, 100 195Z" fill="#F97316" opacity="0.5"/>
+  <!-- Volcano peak -->
+  <path d="M175 95 L200 50 L225 95Z" fill="#C2410C"/>
+  <!-- Lava glow -->
+  <path d="M188 75 L200 55 L212 75Z" fill="#FBBF24" opacity="0.8"/>
+  <!-- Smoke/glow -->
+  <circle cx="200" cy="42" r="8" fill="#FDE68A" opacity="0.4"/>
+  <circle cx="195" cy="35" r="5" fill="#FDE68A" opacity="0.3"/>
+  <circle cx="208" cy="33" r="6" fill="#FDE68A" opacity="0.25"/>
+  <!-- Lava streams -->
+  <path d="M200 75 C198 90, 185 110, 175 130" stroke="#EF4444" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M200 75 C202 88, 215 108, 225 128" stroke="#EF4444" stroke-width="2" opacity="0.4" fill="none"/>
+</svg>

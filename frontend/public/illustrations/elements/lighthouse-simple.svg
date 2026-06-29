@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 100" fill="none">
+  <!-- Simple lighthouse -->
+  <!-- Base rock -->
+  <ellipse cx="25" cy="95" rx="20" ry="5" fill="#6B7280"/>
+  <!-- Tower body -->
+  <path d="M18 90 L20 40 L30 40 L32 90Z" fill="#F3F4F6"/>
+  <!-- Red stripes -->
+  <rect x="19" y="50" width="12" height="8" fill="#EF4444" rx="1"/>
+  <rect x="18.5" y="68" width="13" height="8" fill="#EF4444" rx="1"/>
+  <!-- Light room -->
+  <rect x="17" y="35" width="16" height="10" fill="#1F2937" rx="2"/>
+  <!-- Light glow -->
+  <circle cx="25" cy="40" r="4" fill="#FBBF24"/>
+  <circle cx="25" cy="40" r="8" fill="#FBBF24" opacity="0.2"/>
+  <circle cx="25" cy="40" r="12" fill="#FBBF24" opacity="0.1"/>
+  <!-- Roof -->
+  <path d="M15 35 L25 25 L35 35Z" fill="#374151"/>
+  <!-- Light beams -->
+  <path d="M13 38 L-5 30" stroke="#FBBF24" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+  <path d="M37 38 L55 30" stroke="#FBBF24" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,628 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------
+// NGƯỜI DÙNG & QUYỀN (USER & VAITRO)
+// ---------------------------------------------------------
+
+model Role {
+  id    String @id @default(uuid())
+  name  String @unique // TenVaiTro
+  users User[]
+}
+
+model User {
+  id           String    @id @default(uuid())
+  username     String    @unique // TenNguoiDung
+  gender       String? // Gioi_tinh
+  dob          DateTime? // Ngaythangnamsinh
+  avatarUrl    String? // Anh_dai_dien
+  email        String    @unique // Email
+  passwordHash String // Matkhau
+  status       String    @default("ACTIVE") // Trangthai
+  phone        String? // SDT
+
+  // Gamification: Streak & Daily Check-in
+  xp              Int       @default(0) // Điểm kinh nghiệm
+  level           Int       @default(1) // Cấp độ hiện tại
+  lastLoginDate   DateTime? // Thời điểm cuối cùng user mở app
+  streakCount     Int       @default(0) // Chuỗi ngày đăng nhập liên tiếp
+  longestStreak   Int       @default(0) // Kỷ lục chuỗi ngày dài nhất
+  totalCheckIns   Int       @default(0) // Tổng số ngày đã điểm danh
+  lastCheckInDate DateTime? // Ngày điểm danh cuối cùng (để tránh check-in 2 lần/ngày)
+
+  // v2 SP7 Gamification: Gem + Shop + Streak Freeze
+  gems              Int       @default(0)    // Tiền tệ ảo
+  streakFreezes     Int       @default(0)    // Số bùa đóng băng sở hữu
+  unlockedIpaReveal Boolean   @default(false) // Item Kính Lúp IPA unlock
+  unlockedSlowAudio Boolean   @default(false) // Item Loa Ma Thuật unlock
+
+  // v2 SP7 Shop Phase A: Consumable gameplay items
+  xpBoostRemaining  Int       @default(0)    // Số bài còn lại được x1.5 XP (Sách Thần)
+  hintTokens        Int       @default(0)    // Số gợi ý còn lại (Gợi Ý Vàng)
+  secondChances     Int       @default(0)    // Số cơ hội làm lại còn lại (Cơ Hội Thứ Hai)
+
+  // League Tier System — hạng giải đấu (Bronze→Silver→Gold→Diamond→Legend)
+  currentTier       String    @default("bronze") // Hạng hiện tại, persist qua các tuần
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  progresses       Progress[]
+  exerciseAttempts ExerciseAttempt[]
+  dailyActivities  DailyActivity[]
+  passwordResetTokens PasswordResetToken[]
+  userBadges       UserBadge[]
+  leaderboards     Leaderboard[]
+  dailyQuests      DailyQuest[]
+  userMilestones   UserMilestone[]
+  challengeParticipants WeeklyChallengeParticipant[]
+  spinWheelLogs    SpinWheelLog[]
+  cosmetics        UserCosmetic[]
+  seasonTransitions SeasonTransitionLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------
+// BẢN ĐỒ HỌC TẬP & TIẾN TRÌNH (BANDOBAIHOC & TIEN_TRINH)
+// ---------------------------------------------------------
+
+model LearningMap {
+  id          String  @id @default(uuid())
+  name        String // TenBanDo
+  requirement String? // YeuCauBanDo
+  status      String  @default("ACTIVE") // TrangThaiBanDo
+  subcategory String? // v2: nhóm con trong topic (inherit từ SoundGroup khi seed). null = không phân nhóm.
+
+  exercises  Exercise[]
+  progresses Progress[]
+}
+
+model Leaderboard {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score              Int      @default(0) // DiemSo
+  correctAnswers     Int      @default(0) // SoCauDung
+  completedExercises Int      @default(0) // SoBaiLam
+  type               String // LoaiKy: 'tuan' ho?c 'thang'
+  period             String // KyXepHang: vd "2026-W22" ho?c "2026-06"
+  updatedAt          DateTime @updatedAt // ThoiGianCapNhat
+
+  @@unique([userId, type, period])
+  @@index([type, period, score])
+}
+
+// v2 SP7 Gamification: Daily Quests (3 quest/ngày, cá nhân hóa)
+model DailyQuest {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime               // yyyy-mm-dd (start of day)
+  questType   String                 // "PRACTICE_3" | "CD2_3" | "CD4_LINKING_3"
+  target      Int                    // 3
+  progress    Int       @default(0)
+  completed   Boolean   @default(false)
+  rewardXp    Int                    // 50
+  rewardGems  Int                    // 10
+  claimedAt   DateTime?              // khi reward claim (completed + gem/xp awarded)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, date, questType])
+  @@index([userId, date])
+}
+
+model Progress {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  mapId String
+  map   LearningMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+
+  position Int     @default(0) // Vi_tri
+  result   String? // KQ_man
+
+  @@unique([userId, mapId])
+}
+
+// ---------------------------------------------------------
+// BÀI TẬP & CẤU TRÚC (BAITAP, CHUDE, CAPDO, TEPAMTHANH)
+// ---------------------------------------------------------
+
+model Topic {
+  id          String  @id @default(uuid())
+  name        String // TenCD
+  description String? // MoTa
+
+  // v2: thứ tự chủ đề + unlock tuần tự
+  orderIndex             Int @default(0) // 1=vowels, 2=consonants, 3=minimal-pairs-hard, 4=stress-connected
+  unlockThresholdPercent Int @default(0) // % hoàn thành topic trước cần đạt. 0 = mở tự do (CĐ1). CĐ2/3/4 = 80.
+
+  exercises   Exercise[]
+  soundGroups SoundGroup[]
+}
+
+model Level {
+  id          String  @id @default(uuid())
+  name        String // TenCD (Cấp độ)
+  description String? // MoTaCDN
+
+  exercises   Exercise[]
+  soundGroups SoundGroup[]
+}
+
+model AudioFile {
+  id        String @id @default(uuid())
+  path      String // DuongDanAmThanh
+  duration  Int? // ThoiGianTep (seconds)
+  playLimit Int? // GioiHanPhat
+
+  exercises Exercise[] @relation("ExerciseAudios")
+}
+
+model Exercise {
+  id            String  @id @default(uuid())
+  name          String // TenBai
+  questionCount Int     @default(0) // SoCauHoi
+  timeLimit     Int? // TGLamBai (seconds)
+  status        String  @default("ACTIVE") // TrangThaiBai
+  description   String? // MoTaBT
+
+  topicId String
+  topic   Topic  @relation(fields: [topicId], references: [id])
+
+  levelId String
+  level   Level  @relation(fields: [levelId], references: [id])
+
+  mapId String
+  map   LearningMap @relation(fields: [mapId], references: [id])
+
+  questions Question[]
+  attempts  ExerciseAttempt[]
+  audios    AudioFile[]       @relation("ExerciseAudios") // Quan hệ n-n qua "Dung"
+}
+
+// ---------------------------------------------------------
+// CÂU HỎI & PHƯƠNG ÁN (CAUHOI, LOAI_CAU_HOI, PHUONG_AN)
+// ---------------------------------------------------------
+
+model QuestionType {
+  id          String  @id @default(uuid())
+  name        String // Ten_Loai
+  description String? // MoTaLoai
+
+  questions         Question[]
+  questionBankItems QuestionBankItem[]
+}
+
+model Question {
+  id      String  @id @default(uuid())
+  name    String? // TenCauHoi
+  content String // Noi dung cau hoi
+  status  String  @default("ACTIVE") // TrangThaiCauhoi
+  score   Int     @default(10) // điểm
+  answer  String // đáp án
+  acceptedAnswers Json? // v2: mảng đáp án chấp nhận cho Mode B CĐ4. null = dùng `answer` đơn trị.
+
+  typeId String
+  type   QuestionType @relation(fields: [typeId], references: [id])
+
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  options          AnswerOption[]
+  questionAttempts QuestionAttempt[]
+}
+
+model AnswerOption {
+  id      String @id @default(uuid())
+  content String // NoiDungPA
+
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+// CHI TIẾT LÀM BÀI (CHITIETLAMBAI)
+// ---------------------------------------------------------
+
+model Phoneme {
+  id            String   @id @default(uuid())
+  symbol        String   @unique // IPA symbol, vi du /i:/, /ɪ/, /æ/
+  name          String
+  category      String // VOWEL, DIPHTHONG, CONSONANT
+  description   String?
+  mouthHint     String?
+  commonMistake String?
+  status        String   @default("ACTIVE") // ACTIVE, DRAFT, NEEDS_REVIEW, ARCHIVED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  soundGroups SoundGroupPhoneme[]
+  wordItems   WordItem[]
+
+  @@index([category, status])
+}
+
+model SoundGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  orderIndex  Int      @default(0)
+  status      String   @default("DRAFT") // DRAFT, NEEDS_REVIEW, ACTIVE, ARCHIVED
+  subcategory String?  // v2: nhóm con trong topic (vd "Nguyên âm đơn", "Plosives"). null = không phân nhóm.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topicId String?
+  topic   Topic?  @relation(fields: [topicId], references: [id], onDelete: SetNull)
+
+  levelId String?
+  level   Level?  @relation(fields: [levelId], references: [id], onDelete: SetNull)
+
+  phonemes          SoundGroupPhoneme[]
+  minimalPairs      MinimalPair[]
+  sentenceItems     SentenceItem[]
+  questionBankItems QuestionBankItem[]
+
+  @@index([topicId])
+  @@index([levelId])
+  @@index([status, orderIndex])
+}
+
+model SoundGroupPhoneme {
+  soundGroupId String
+  phonemeId    String
+  role         String? // target, contrast, primary, secondary
+  orderIndex   Int     @default(0)
+
+  soundGroup SoundGroup @relation(fields: [soundGroupId], references: [id], onDelete: Cascade)
+  phoneme    Phoneme    @relation(fields: [phonemeId], references: [id], onDelete: Cascade)
+
+  @@id([soundGroupId, phonemeId])
+  @@index([phonemeId])
+  @@index([soundGroupId, orderIndex])
+}
+
+model WordItem {
+  id          String    @id @default(uuid())
+  word        String
+  ipa         String
+  audioUrl    String?
+  audioSource String    @default("MANUAL") // LOCAL, FREE_DICTIONARY, MANUAL, LICENSED
+  sourceType  String    @default("MANUAL") // MANUAL, OPEN_SOURCE, FREE_API, LICENSED
+  sourceUrl   String?
+  meaningVi   String?
+  // v2: cho Chủ đề 4 Trọng âm & Nối âm
+  syllables      Json?   // Mảng âm tiết để UI "Tap the Stress" render khối, vd ["pho","to","gra","phy"]
+  stressIndex    Int?    // Vị trí âm tiết nhấn (0-based)
+  wordStressType String? // WORD_STRESS | WEAK_FORM | LINKING | ASSIMILATION. null = từ IPA thường (CĐ1-3).
+  difficulty  String    @default("EASY") // EASY, MEDIUM, HARD
+  status      String    @default("NEEDS_REVIEW") // DRAFT, NEEDS_REVIEW, ACTIVE, ARCHIVED
+  reviewNote  String?
+  createdBy   String?
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  phonemeId String
+  phoneme   Phoneme @relation(fields: [phonemeId], references: [id], onDelete: Restrict)
+
+  minimalPairAsWordA MinimalPair[]      @relation("MinimalPairWordA")
+  minimalPairAsWordB MinimalPair[]      @relation("MinimalPairWordB")
+  questionBankItems  QuestionBankItem[]
+
+  @@unique([word, ipa, phonemeId])
+  @@index([phonemeId])
+  @@index([status, difficulty])
+  @@index([audioSource])
+}
+
+model MinimalPair {
+  id         String   @id @default(uuid())
+  note       String?
+  difficulty String   @default("EASY") // EASY, MEDIUM, HARD
+  status     String   @default("NEEDS_REVIEW") // DRAFT, NEEDS_REVIEW, ACTIVE, ARCHIVED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  soundGroupId String
+  soundGroup   SoundGroup @relation(fields: [soundGroupId], references: [id], onDelete: Cascade)
+
+  wordAId String
+  wordA   WordItem @relation("MinimalPairWordA", fields: [wordAId], references: [id], onDelete: Restrict)
+
+  wordBId String
+  wordB   WordItem @relation("MinimalPairWordB", fields: [wordBId], references: [id], onDelete: Restrict)
+
+  questionBankItems QuestionBankItem[]
+
+  @@unique([soundGroupId, wordAId, wordBId])
+  @@index([soundGroupId])
+  @@index([status, difficulty])
+  @@index([wordAId])
+  @@index([wordBId])
+}
+
+model SentenceItem {
+  id          String   @id @default(uuid())
+  text        String
+  targetWords Json?
+  difficulty  String   @default("EASY") // EASY, MEDIUM, HARD
+  status      String   @default("NEEDS_REVIEW") // DRAFT, NEEDS_REVIEW, ACTIVE, ARCHIVED
+  sourceType  String   @default("MANUAL") // MANUAL, OPEN_SOURCE, FREE_API, LICENSED
+  sourceUrl   String?
+  reviewNote  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  soundGroupId String
+  soundGroup   SoundGroup @relation(fields: [soundGroupId], references: [id], onDelete: Cascade)
+
+  questionBankItems QuestionBankItem[]
+
+  @@index([soundGroupId])
+  @@index([status, difficulty])
+  @@index([sourceType])
+}
+
+model QuestionBankItem {
+  id          String   @id @default(uuid())
+  prompt      String?
+  contentJson Json
+  answer      String
+  acceptedAnswers Json? // v2: mảng đáp án chấp nhận cho Mode B CĐ4 (kho nguồn). null = dùng `answer` đơn trị.
+  score       Int      @default(10)
+  difficulty  String   @default("EASY") // EASY, MEDIUM, HARD
+  status      String   @default("NEEDS_REVIEW") // DRAFT, NEEDS_REVIEW, ACTIVE, ARCHIVED
+  sourceType  String   @default("MANUAL") // MANUAL, OPEN_SOURCE, FREE_API, LICENSED
+  sourceUrl   String?
+  reviewNote  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questionTypeId String
+  questionType   QuestionType @relation(fields: [questionTypeId], references: [id], onDelete: Restrict)
+
+  soundGroupId String?
+  soundGroup   SoundGroup? @relation(fields: [soundGroupId], references: [id], onDelete: SetNull)
+
+  minimalPairId String?
+  minimalPair   MinimalPair? @relation(fields: [minimalPairId], references: [id], onDelete: SetNull)
+
+  wordItemId String?
+  wordItem   WordItem? @relation(fields: [wordItemId], references: [id], onDelete: SetNull)
+
+  sentenceItemId String?
+  sentenceItem   SentenceItem? @relation(fields: [sentenceItemId], references: [id], onDelete: SetNull)
+
+  @@index([questionTypeId])
+  @@index([soundGroupId])
+  @@index([minimalPairId])
+  @@index([wordItemId])
+  @@index([sentenceItemId])
+  @@index([status, difficulty])
+  @@index([sourceType])
+}
+
+model ExerciseAttempt {
+  id           String  @id @default(uuid())
+  name         String? // TenCTLB
+  status       String  @default("COMPLETED") // Trangthai
+  attemptCount Int     @default(1) // So_lan_lam
+  score        Int     @default(0) // Điểm đạt được (%)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime          @default(now())
+  questionAttempts QuestionAttempt[]
+}
+
+model QuestionAttempt {
+  id                String          @id @default(uuid())
+  exerciseAttemptId String
+  exerciseAttempt   ExerciseAttempt @relation(fields: [exerciseAttemptId], references: [id], onDelete: Cascade)
+  questionId        String
+  question          Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  transcript        String? // Nội dung thu âm của người dùng
+  selectedOptionId  String? // Phương án người dùng chọn, nếu là câu trắc nghiệm
+  isCorrect         Boolean         @default(false)
+  score             Int             @default(0) // Điểm đạt được ở câu hỏi này
+  accuracyScore     Int? // Độ chính xác phát âm (%)
+  fluencyScore      Int? // Độ trôi chảy phát âm (%)
+  feedback          String? // Phản hồi chi tiết cho người học
+  audioUrl          String? // Đường dẫn file ghi âm của người học, nếu có lưu
+  timeSpent         Int? // Thời gian làm câu hỏi (giây)
+  createdAt         DateTime        @default(now())
+}
+
+// ---------------------------------------------------------
+// LỊCH SỬ HOẠT ĐỘNG HẰNG NGÀY (STREAK / DAILY PROGRESS)
+// ---------------------------------------------------------
+
+model DailyActivity {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date               DateTime
+  xpEarned           Int      @default(0)
+  completedExercises Int      @default(0)
+  checkIns           Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([date])
+}
+
+// ---------------------------------------------------------
+// HUY HIỆU & GAMIFICATION (HUYHIEU)
+// ---------------------------------------------------------
+
+model Badge {
+  id          String  @id @default(uuid())
+  name        String // TenHuyHieu
+  description String? // MoTaHH
+  image       String? // HinhAnhHH
+  condition   String? // DieuKienDat
+  type        String // LoaiHuyHieu (Vĩnh viễn / Tạm thời)
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id          String   @id @default(uuid())
+  userId      String
+  badgeId     String
+  earnedAt    DateTime @default(now()) // thời gian
+  validPeriod String? // KyHieuLuc: vd "2026-W22", null nếu là huy hiệu vĩnh viễn
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+}
+
+// ---------------------------------------------------------
+// PHẦN THƯỞNG CỘT MỐC (ENGAGEMENT PHASE 2)
+// ---------------------------------------------------------
+
+model MilestoneReward {
+  id          String   @id @default(uuid())
+  level       Int      @unique          // Level cần đạt
+  gemsReward  Int      @default(0)
+  badgeName   String?                   // Tên badge thưởng (optional)
+  unlockType  String?                   // "avatar_frame" | "theme" | "feature" (optional)
+  unlockValue String?                   // Giá trị mở khóa (optional)
+  title       String                    // "Khởi Đầu", "Kiên Trì"
+  description String
+  createdAt   DateTime @default(now())
+
+  userMilestones UserMilestone[]
+}
+
+model UserMilestone {
+  id          String   @id @default(uuid())
+  userId      String
+  milestoneId String
+  claimedAt   DateTime @default(now())
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestone MilestoneReward @relation(fields: [milestoneId], references: [id])
+
+  @@unique([userId, milestoneId])
+}
+
+// ---------------------------------------------------------
+// THỬ THÁCH TUẦN & VÒNG QUAY (ENGAGEMENT PHASE 3)
+// ---------------------------------------------------------
+
+model WeeklyChallenge {
+  id           String   @id @default(uuid())
+  weekKey      String   @unique  // "2026-W26" ISO week
+  title        String
+  description  String
+  targetMetric String            // "streak" | "score" | "exercises" | "perfect_scores"
+  targetValue  Int
+  rewardGems   Int      @default(0)
+  rewardBadge  String?
+  startsAt     DateTime
+  endsAt       DateTime
+  createdAt    DateTime @default(now())
+
+  participants WeeklyChallengeParticipant[]
+}
+
+model WeeklyChallengeParticipant {
+  id           String    @id @default(uuid())
+  challengeId  String
+  userId       String
+  progress     Int       @default(0)
+  completed    Boolean   @default(false)
+  claimedAt    DateTime?
+
+  challenge WeeklyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+}
+
+model SpinWheelLog {
+  id         String   @id @default(uuid())
+  userId     String
+  prize      String             // "gems_10" | "gems_50" | "xp_100" | "streak_freeze" | "nothing" | "jackpot"
+  prizeValue Int      @default(0)
+  spunAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, spunAt])
+}
+
+/// Cosmetic items owned by users (avatar frames, titles).
+/// Separate model for cohesion — keeps User model clean, scales for future items.
+model UserCosmetic {
+  id         String   @id @default(cuid())
+  userId     String
+  itemId     String   // "frame_gold" | "frame_fire" | "title_scholar" | "title_champion"
+  equipped   Boolean  @default(false)
+  unlockedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------
+// LEAGUE TIER SYSTEM — Giải đấu theo hạng
+// ---------------------------------------------------------
+
+/// Log mỗi lần transition hạng (lên/xuống) khi kết thúc tuần.
+/// Ghi lại: hạng cũ → hạng mới, gems nhận được, vị trí xếp hạng.
+model SeasonTransitionLog {
+  id           String   @id @default(uuid())
+  userId       String
+  period       String              // "2026-W22" — tuần diễn ra transition
+  fromTier     String              // Hạng trước (bronze/silver/gold/diamond/legend)
+  toTier       String              // Hạng sau
+  action       String              // "promoted" | "demoted" | "stayed"
+  rankInTier   Int                 // Vị trí trong hạng (1-based)
+  gemsEarned   Int       @default(0) // Gems thưởng (chỉ top 5 mới có)
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([period])
+}

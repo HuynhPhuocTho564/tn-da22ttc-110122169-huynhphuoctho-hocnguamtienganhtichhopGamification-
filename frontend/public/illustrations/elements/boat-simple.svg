@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="none">
+  <!-- Simple sailboat -->
+  <!-- Hull -->
+  <path d="M10 35 L15 42 L35 42 L40 35Z" fill="#92400E"/>
+  <path d="M12 35 L16 40 L34 40 L38 35Z" fill="#B45309"/>
+  <!-- Mast -->
+  <line x1="25" y1="10" x2="25" y2="35" stroke="#78350F" stroke-width="2"/>
+  <!-- Main sail -->
+  <path d="M25 12 L25 33 L38 33Z" fill="white" stroke="#E5E7EB" stroke-width="0.5"/>
+  <!-- Jib sail -->
+  <path d="M25 14 L25 30 L15 30Z" fill="#F0F9FF" stroke="#E5E7EB" stroke-width="0.5"/>
+  <!-- Flag on top -->
+  <path d="M25 10 L32 13 L25 16" fill="#EF4444"/>
+  <!-- Water line -->
+  <path d="M5 44 C10 42, 15 46, 20 44 C25 42, 30 46, 35 44 C40 42, 45 46, 48 44" stroke="#60A5FA" stroke-width="1.5" fill="none" opacity="0.5"/>
+</svg>

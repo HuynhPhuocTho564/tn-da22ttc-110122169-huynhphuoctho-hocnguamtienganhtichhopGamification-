@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Seamless wave pattern for sea background -->
+  <path d="M0 30 C20 20, 40 40, 60 30 C80 20, 100 40, 120 30 C140 20, 160 40, 180 30 C200 20, 200 30, 200 30" stroke="#93C5FD" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M0 40 C20 30, 40 50, 60 40 C80 30, 100 50, 120 40 C140 30, 160 50, 180 40 C200 30, 200 40, 200 40" stroke="#60A5FA" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M0 50 C20 42, 40 55, 60 50 C80 42, 100 55, 120 50 C140 42, 160 55, 180 50 C200 42, 200 50, 200 50" stroke="#3B82F6" stroke-width="1" fill="none" opacity="0.3"/>
+</svg>

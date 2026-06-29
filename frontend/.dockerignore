@@ -1,0 +1,52 @@
+# Node
+node_modules
+npm-debug.log
+.npm
+
+# Next.js
+.next
+out
+.vercel
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Testing
+coverage
+.nyc_output
+
+# Build
+dist
+build
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+README.md
+*.md
+docs/
+WORD/
+PLAN/
+
+# Misc
+.eslintcache
+*.log

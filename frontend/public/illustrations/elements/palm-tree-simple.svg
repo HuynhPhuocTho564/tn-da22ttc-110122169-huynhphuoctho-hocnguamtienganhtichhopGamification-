@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 80" fill="none">
+  <!-- Simple palm tree -->
+  <!-- Trunk -->
+  <path d="M20 80 C18 65, 17 50, 19 35 C20 25, 22 20, 22 15" stroke="#92400E" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Leaves -->
+  <path d="M22 15 C15 5, 5 8, 2 12" stroke="#16A34A" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M22 15 C28 5, 38 8, 40 12" stroke="#16A34A" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M22 15 C18 3, 10 0, 5 2" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M22 15 C26 3, 34 0, 38 2" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M22 15 C22 5, 22 0, 22 -2" stroke="#15803D" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Coconuts -->
+  <circle cx="20" cy="18" r="2.5" fill="#92400E"/>
+  <circle cx="24" cy="17" r="2.5" fill="#78350F"/>
+</svg>

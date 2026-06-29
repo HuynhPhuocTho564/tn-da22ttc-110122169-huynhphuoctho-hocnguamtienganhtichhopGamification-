@@ -1,0 +1,407 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 Theme - Blue + Orange Color System (Educational) */
+@theme {
+  /* PRIMARY — Blue (Learning, Trust, Knowledge) */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;  /* Main Blue */
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* ACCENT — Orange (Energy, Motivation, Gamification) */
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-200: #fed7aa;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;  /* Main Orange */
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --color-accent-800: #9a3412;
+  --color-accent-900: #7c2d12;
+
+  /* SUCCESS — Green (Correct, Achievement) */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+
+  /* WARNING — Amber (Attention, Needs Improvement) */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+
+  /* ERROR — Soft Red (Incorrect, Not Alarming) */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+  /* NEUTRAL — Backgrounds and Text */
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+
+  /* SUPPORTING COLORS (Minimal use) */
+  --color-sky-50: #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-500: #0ea5e9;
+
+  --color-teal-50: #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-500: #14b8a6;
+
+  --color-purple-50: #faf5ff;
+  --color-purple-100: #f3e8ff;
+  --color-purple-500: #a855f7;
+
+  --color-pink-50: #fdf2f8;
+  --color-pink-100: #fce7f3;
+  --color-pink-500: #ec4899;
+
+  /* ISLAND BIOME COLORS — only new names that don't conflict with Tailwind defaults */
+  /* Biome-specific semantic tokens (unique names, no override of built-in colors) */
+  --color-biome-vowels: #10b981;
+  --color-biome-vowels-light: #d1fae5;
+  --color-biome-vowels-dark: #047857;
+  --color-biome-consonants: #3b82f6;
+  --color-biome-consonants-light: #dbeafe;
+  --color-biome-consonants-dark: #1d4ed8;
+  --color-biome-pairs: #a855f7;
+  --color-biome-pairs-light: #f3e8ff;
+  --color-biome-pairs-dark: #7c3aed;
+  --color-biome-stress: #f97316;
+  --color-biome-stress-light: #ffedd5;
+  --color-biome-stress-dark: #c2410c;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Font IPA */
+.font-ipa {
+  font-family: var(--font-ipa), 'Noto Sans', serif;
+}
+
+/* Gamification Tier Colors (ui-color-harmony §H) */
+.tier-bronze {
+  background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+  color: #fff;
+}
+.tier-silver {
+  background: linear-gradient(135deg, #c0c0c0 0%, #808080 100%);
+  color: #1a1a1a;
+}
+.tier-gold {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #b8860b 100%);
+  color: #1a1a1a;
+}
+.tier-diamond {
+  background: linear-gradient(135deg, #b9f2ff 0%, #5b9bd5 100%);
+  color: #1a1a1a;
+}
+
+/* Glow effects for CTAs */
+.glow-primary {
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4), 0 2px 6px rgba(59, 130, 246, 0.2);
+}
+.glow-accent {
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4), 0 2px 6px rgba(234, 88, 12, 0.2);
+}
+.glow-success {
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4), 0 2px 6px rgba(34, 197, 94, 0.2);
+}
+
+html {
+  background: linear-gradient(180deg, #dbeafe 0%, #fef3c7 50%, #fce7f3 100%);
+  background-attachment: fixed;
+}
+
+body {
+  background: linear-gradient(180deg, #dbeafe 0%, #fef3c7 50%, #fce7f3 100%);
+  background-attachment: fixed;
+  color: #111827;
+}
+
+/* Animation for blob */
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+/* Animation cho nút đáp án sai (SP1 feedback) — rung nhẹ báo cần chú ý.
+   Reduced-motion block ở dưới đã disable toàn animation qua `*` → tự tắt. */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* === Gamification Celebration Animations === */
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-sway {
+  0% {
+    margin-left: 0;
+  }
+  100% {
+    margin-left: 30px;
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(100%) translateX(-50%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) translateX(-50%);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(249, 115, 22, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
+  }
+}
+
+/* === Island Map Animations === */
+
+/* Gentle sea wave motion for archipelago background */
+@keyframes sea-wave {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  50% { transform: translateX(-8px) translateY(3px); }
+}
+.animate-sea-wave { animation: sea-wave 6s ease-in-out infinite; }
+
+/* Fog drifting over locked islands — Zelda-style Fog of War */
+@keyframes fog-drift {
+  0%, 100% { transform: translateX(-3%) scale(1); }
+  50% { transform: translateX(3%) scale(1.02); }
+}
+.animate-fog-drift { animation: fog-drift 8s ease-in-out infinite; }
+
+/* Flag waving on completed camps */
+@keyframes flag-wave {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.animate-flag-wave { animation: flag-wave 2s ease-in-out infinite; transform-origin: bottom left; }
+
+/* Pulsing ring on current camp — "you are here" indicator */
+@keyframes camp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+}
+.animate-camp-pulse { animation: camp-pulse 2s ease-in-out infinite; }
+
+/* Boat gently bobbing on water */
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(-1deg); }
+  75% { transform: translateY(2px) rotate(1deg); }
+}
+.animate-boat-bob { animation: boat-bob 3s ease-in-out infinite; }
+
+/* Boat sailing between islands (transition overlay) */
+@keyframes boat-sail {
+  0% { transform: translateX(-100%) translateY(0); }
+  25% { transform: translateX(-50%) translateY(-8px); }
+  50% { transform: translateX(0%) translateY(0); }
+  75% { transform: translateX(50%) translateY(-8px); }
+  100% { transform: translateX(100%) translateY(0); }
+}
+.animate-boat-sail { animation: boat-sail 2.5s ease-in-out; }
+
+/* Treasure chest bounce — draws attention */
+@keyframes chest-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.animate-chest-bounce { animation: chest-bounce 1.5s ease-in-out infinite; }
+
+/* Island glow pulse for completed/current islands */
+@keyframes island-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.2)); }
+  50% { filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.5)); }
+}
+.animate-island-glow { animation: island-glow 3s ease-in-out infinite; }
+
+/* Animated dash flow for current paths */
+@keyframes dash-flow {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* Slide-up panel for island detail view */
+@keyframes slide-up-panel {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up-panel { animation: slide-up-panel 0.4s ease-out; }
+
+/* Fade-in for overlays */
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+
+/* Scale-in bounce for island unlock celebration */
+@keyframes unlock-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-unlock-pop { animation: unlock-pop 0.5s ease-out; }
+
+/* Floating clouds (parallax decoration) */
+@keyframes cloud-float {
+  0% { transform: translateX(-10%); }
+  100% { transform: translateX(110%); }
+}
+
+/* === Focus Mode RPG Neon Glow (Ocean Blue) === */
+/* Slow cyan glow pulse — used on speaker / badge focus halos */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.3), 0 0 40px rgba(34, 211, 238, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(34, 211, 238, 0.6), 0 0 80px rgba(34, 211, 238, 0.2);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Slow background gradient shift for the ocean-blue body */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

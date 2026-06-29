@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Vowels Island: Rounded coral island with beach -->
+  <!-- Sand/beach border -->
+  <path d="M80 180 C60 140, 100 80, 160 70 C220 60, 280 70, 320 100 C360 130, 370 180, 340 220 C310 260, 240 270, 180 260 C120 250, 80 230, 80 180Z" fill="#FDE68A" opacity="0.6"/>
+  <!-- Main island body -->
+  <path d="M90 175 C75 140, 110 90, 165 80 C220 70, 275 78, 310 105 C345 132, 355 175, 330 210 C305 245, 235 258, 180 250 C125 242, 90 220, 90 175Z" fill="#D1FAE5"/>
+  <!-- Grass/vegetation -->
+  <path d="M110 170 C100 145, 130 110, 175 100 C220 90, 265 95, 295 115 C325 135, 335 165, 315 195 C295 225, 230 238, 180 232 C130 226, 110 205, 110 170Z" fill="#10B981"/>
+  <!-- Small hills -->
+  <ellipse cx="180" cy="150" rx="40" ry="25" fill="#059669" opacity="0.5"/>
+  <ellipse cx="250" cy="160" rx="30" ry="20" fill="#059669" opacity="0.4"/>
+  <!-- Pond/lake -->
+  <ellipse cx="200" cy="175" rx="20" ry="12" fill="#67E8F9" opacity="0.6"/>
+</svg>
