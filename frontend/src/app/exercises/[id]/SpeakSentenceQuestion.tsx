@@ -114,7 +114,7 @@ export default function SpeakSentenceQuestion({ question, onNext, unlockedSlowAu
     void recorder.start();
     try {
       recog.start();
-      window.setTimeout(() => { try { recog.stop(); } catch { /* */ } }, 8000); // sentence: 8s
+      window.setTimeout(() => { try { recog.stop(); } catch { /* */ } }, 5000); // sentence: 5s
     } catch (e) { console.error("recognition start failed:", e); setStatus("error"); }
   };
 
@@ -127,8 +127,8 @@ export default function SpeakSentenceQuestion({ question, onNext, unlockedSlowAu
           <span className="inline-block rounded-full bg-accent-100 px-4 py-1.5 text-sm font-bold text-accent-700">🎯 Thực chiến</span>
         </div>
 
-        {/* IPA reveal - only shown when user unlocked IPA reveal from shop */}
-        {unlockedIpaReveal && contentData.ipa && (
+        {/* IPA transcription */}
+        {contentData.ipa && (
           <div className="mb-4 text-center">
             <p className="font-ipa text-xl font-bold text-accent-500">{contentData.ipa}</p>
           </div>
@@ -136,11 +136,6 @@ export default function SpeakSentenceQuestion({ question, onNext, unlockedSlowAu
 
         {/* Câu ẩn (toggle) */}
         <div className="mb-6 text-center">
-          {unlockedIpaReveal && contentData.ipa && (
-            <p className="mb-3 font-ipa text-2xl font-bold text-accent-600">
-              {contentData.ipa}
-            </p>
-          )}
           <p className="text-xl font-bold leading-relaxed text-neutral-900">
             {showSentence ? question.answer : maskedSentence}
           </p>
@@ -221,10 +216,16 @@ export default function SpeakSentenceQuestion({ question, onNext, unlockedSlowAu
                   : "Kiểm tra microphone và thử lại — nói to, rõ, bằng tiếng Anh"}
               </p>
             </div>
-            <button type="button" onClick={startRecording}
-              className="rounded-xl bg-accent-600 px-6 py-3 font-bold text-white hover:bg-accent-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-accent-300">
-              Thử lại
-            </button>
+            <div className="flex justify-center gap-3">
+              <button type="button" onClick={startRecording}
+                className="rounded-xl bg-accent-600 px-6 py-3 font-bold text-white hover:bg-accent-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-accent-300">
+                Thử lại
+              </button>
+              <button type="button" onClick={() => onNext(false, "")}
+                className="rounded-xl bg-neutral-200 px-6 py-3 font-bold text-neutral-700 hover:bg-neutral-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-neutral-400">
+                Bỏ qua →
+              </button>
+            </div>
           </div>
         )}
 

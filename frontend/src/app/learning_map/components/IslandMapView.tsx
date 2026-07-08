@@ -9,7 +9,7 @@
  * nielsen H3: User control — back navigation ở mọi level.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
 import ArchipelagoMap from "./ArchipelagoMap";
 import IslandDetailPanel from "./IslandDetailPanel";
@@ -80,15 +80,16 @@ export default function IslandMapView({ topics }: { topics: TopicUI[] }) {
     }
   }, [islands]);
 
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [selectedIsland, selectedCamp]);
+
   // nielsen H3: Back navigation — contextual
   const handleBack = () => {
     if (selectedCamp) {
       setSelectedCamp(null);
-      return;
-    }
-    if (selectedIsland) {
+    } else if (selectedIsland) {
       setSelectedIsland(null);
-      return;
     }
   };
 
@@ -104,7 +105,7 @@ export default function IslandMapView({ topics }: { topics: TopicUI[] }) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
       {/* Breadcrumb for deep navigation — with icons + colored active state */}
       {(selectedIsland || selectedCamp) && (
         <nav className="mb-4 flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-base shadow-sm" aria-label="Breadcrumb">

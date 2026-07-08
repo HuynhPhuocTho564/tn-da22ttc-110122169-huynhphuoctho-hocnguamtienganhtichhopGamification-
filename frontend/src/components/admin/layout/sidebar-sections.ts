@@ -1,23 +1,63 @@
 /**
  * Sidebar section definition.
  *
- * Single "Quản trị" section listing all admin modules.
+ * Implements PLAN/ADMIN_DASHBOARD_new.md — 5 compact sidebar items with
+ * two navigation patterns:
+ * - "Nội dung" (type: "tabs") triggers the 4 horizontal Learning Map tabs
+ *   configured in `./maps-tabs.ts` (Nguyên âm, Phụ âm, Minimal Pairs, Trọng âm).
+ * - "Gamification" (type: "dropdown") expands to 5 items configured in
+ *   `./gamification-dropdown.ts` (Badges, Shop Items, Spin Wheel, Nhiệm vụ, Xếp hạng).
+ * - "Tổng quan", "Người dùng", "Báo cáo" are direct routes (type: "default").
  */
 
-import { AudioLines, Award, BarChart3, BookOpen, FolderTree, LayoutDashboard, Users } from "lucide-react";
+import {
+  BarChart3,
+  LayoutDashboard,
+  Map,
+  Trophy,
+  Users,
+} from "lucide-react";
 import type { SidebarSection } from "./types";
 
 export const sidebarSections: SidebarSection[] = [
   {
     label: "Quản trị",
     items: [
-      { id: "overview", name: "Dashboard", description: "Tổng quan hệ thống", icon: LayoutDashboard },
-      { id: "users", name: "Người dùng", description: "Tài khoản, role, trạng thái", icon: Users },
-      { id: "topics", name: "Nội dung học tập", description: "Chủ đề, phoneme, từ vựng, nhóm âm", icon: FolderTree },
-      { id: "exercises", name: "Bài tập", description: "Bài luyện và ngân hàng câu", icon: BookOpen },
-      { id: "audio", name: "Âm thanh", description: "File audio dùng trong bài học", icon: AudioLines },
-      { id: "badges", name: "Gamification", description: "Huy hiệu và điều kiện nhận", icon: Award },
-      { id: "reports", name: "Báo cáo", description: "Hiệu suất 7 ngày gần nhất", icon: BarChart3 },
+      {
+        id: "overview",
+        name: "Tổng quan",
+        description: "Metrics & system overview",
+        icon: LayoutDashboard,
+        type: "default",
+      },
+      {
+        id: "users",
+        name: "Người dùng",
+        description: "User accounts & roles",
+        icon: Users,
+        type: "default",
+      },
+      {
+        id: "map_vowels",
+        name: "Nội dung",
+        description: "5 Learning Maps hierarchy",
+        icon: Map,
+        type: "tabs",
+      },
+      {
+        id: "badges",
+        name: "Gamification",
+        description: "Badges, Shop, Spin Wheel, Quests, Leaderboard",
+        icon: Trophy,
+        type: "dropdown",
+      },
+      {
+        id: "reports",
+        name: "Báo cáo",
+        description: "Analytics & exports",
+        icon: BarChart3,
+        type: "default",
+      },
     ],
   },
 ];

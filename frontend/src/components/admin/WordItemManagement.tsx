@@ -4,8 +4,9 @@ import { useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import AdminErrorBlock from "./layout/AdminErrorBlock";
+import { AdminErrorBlock } from "@/components/admin/ui";
 import AdminSearchInput from "./layout/AdminSearchInput";
+import Pagination, { PAGE_SIZE } from "./layout/Pagination";
 
 export type AdminWordItem = {
   id: string;
@@ -51,12 +52,16 @@ export default function WordItemManagement({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const kw = search.toLowerCase();
     return items.filter((i) => i.word.toLowerCase().includes(kw) || i.ipa.includes(kw));
   }, [items, search]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pagedItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleSubmit = async () => {
     setError(null);
@@ -95,14 +100,14 @@ export default function WordItemManagement({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Quản lý Word Item</h2>
-          <p className="mt-1 text-sm text-slate-600">{items.length} từ vựng</p>
+          <p className="mt-1 text-sm text-slate-600">{items.length} từ vựng (trang {page}/{totalPages || 1})</p>
         </div>
         <Button onClick={() => { setForm(emptyForm); setEditingId(null); setShowForm(!showForm); }}>{showForm ? "Hủy" : "+ Thêm từ"}</Button>
       </div>
 
       {error && <AdminErrorBlock message={error} className="mb-6" />}
 
-      <AdminSearchInput value={search} onChange={setSearch} placeholder="Tìm theo từ hoặc IPA..." className="mb-6" />
+      <AdminSearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Tìm theo từ hoặc IPA..." className="mb-6" />
 
       {showForm && (
         <Card>
@@ -129,7 +134,7 @@ export default function WordItemManagement({
               <tr><th className="px-4 py-3 font-semibold">Word</th><th className="px-4 py-3 font-semibold">IPA</th><th className="px-4 py-3 font-semibold">Phoneme</th><th className="px-4 py-3 font-semibold">Difficulty</th><th className="px-4 py-3 font-semibold">Status</th><th className="px-4 py-3 font-semibold">Thao tác</th></tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
+              {pagedItems.map((item) => (
                 <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3 font-bold">{item.word}</td>
                   <td className="px-4 py-3 font-mono">{item.ipa}</td>
@@ -143,6 +148,8 @@ export default function WordItemManagement({
           </table>
         </div>
       </Card>
+
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

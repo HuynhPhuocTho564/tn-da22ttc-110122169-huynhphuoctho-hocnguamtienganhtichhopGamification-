@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PracticePage() {
   return (
-    <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <main className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Section */}

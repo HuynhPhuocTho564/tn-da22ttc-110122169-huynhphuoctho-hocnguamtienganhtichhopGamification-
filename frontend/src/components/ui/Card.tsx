@@ -41,7 +41,7 @@ export default function Card({
       role={role}
       aria-label={ariaLabel}
       aria-live={ariaLive}
-      className={`rounded-2xl border-2 border-primary-300/50 bg-gradient-to-br from-white via-primary-50/30 to-accent-50/20 shadow-lg shadow-primary-200/30 backdrop-blur-sm transition-all ${paddingStyles[padding]} ${hoverStyle} ${className}`}
+      className={`rounded-2xl border-2 border-primary-300/50 bg-white shadow-lg shadow-primary-200/30 transition-all ${paddingStyles[padding]} ${hoverStyle} ${className}`}
     >
       {children}
     </div>

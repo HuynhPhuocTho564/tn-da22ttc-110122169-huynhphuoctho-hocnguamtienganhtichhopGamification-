@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { apiSuccess, apiFailure, getAuthenticatedUserId } from "@/lib/admin-api";
 import { checkAndAwardBadges, type BadgeAwardReason } from "@/lib/gamification";
 import { prisma } from "@/lib/prisma";

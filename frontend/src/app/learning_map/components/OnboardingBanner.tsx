@@ -62,7 +62,7 @@ export default function OnboardingBanner() {
             </span>
             <span aria-hidden="true" className="font-bold text-amber-900">→</span>
             <span className="rounded-full bg-amber-200 px-3 py-1 font-bold text-amber-900">
-              🌋 Trọng âm
+              🌋 Trọng âm & Nối âm
             </span>
           </div>
 

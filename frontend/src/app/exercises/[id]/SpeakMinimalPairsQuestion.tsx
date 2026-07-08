@@ -139,7 +139,7 @@ export default function SpeakMinimalPairsQuestion({ question, onNext }: SpeakMin
     void recorder.start();
     try {
       recog.start();
-      window.setTimeout(() => { try { recog.stop(); } catch { /* */ } }, 5000);
+      window.setTimeout(() => { try { recog.stop(); } catch { /* */ } }, 3000);
     } catch (e) {
       console.error("recognition failed:", e);
       setErrorMessage("Không bắt đầu ghi âm được.");
@@ -164,7 +164,7 @@ export default function SpeakMinimalPairsQuestion({ question, onNext }: SpeakMin
         <div className="mb-8 text-center">
           <span className="inline-block rounded-full bg-warning-100 px-5 py-2 text-sm font-bold uppercase tracking-wider text-warning-800">⚔️ Thử thách kép</span>
           <h2 className="mt-3 text-3xl font-black uppercase tracking-widest text-neutral-900">Minimal Pairs</h2>
-          <p className="mt-2 text-lg text-neutral-600">{question.name || "Đọc lần lượt hai từ"}</p>
+          <p className="mt-2 text-lg text-neutral-600">CÂU ĐỌC CẶP TỪ DỄ NHẦM</p>
         </div>
 
         {errorMessage && (

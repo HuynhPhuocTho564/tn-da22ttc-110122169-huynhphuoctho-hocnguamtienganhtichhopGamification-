@@ -8,7 +8,6 @@ import {
   readNullableString,
   readOptionalStatus,
   readRequiredString,
-  readStatus,
   requireAdminSession,
 } from "@/lib/admin-api";
 
@@ -45,9 +44,12 @@ function serializeExerciseDetail(exercise: {
     status: exercise.status,
     timeLimit: exercise.timeLimit,
     questionCount: exercise.questionCount,
-    topic: exercise.topic,
-    level: exercise.level,
-    map: exercise.map,
+    topicId: exercise.topic.id,
+    topic: exercise.topic.name,
+    levelId: exercise.level.id,
+    level: exercise.level.name,
+    mapId: exercise.map.id,
+    map: exercise.map.name,
     attemptCount: exercise._count.attempts,
     questions: exercise.questions.map((question) => ({
       id: question.id,

@@ -3,13 +3,46 @@
 type BarChartProps = {
   labels: string[];
   values: number[];
+  horizontal?: boolean;
 };
 
 /**
  * Inline SVG bar chart used on the Overview dashboard.
  * Self-contained: no external deps beyond React.
+ * Supports both vertical (default) and horizontal orientation.
  */
-export default function BarChart({ labels, values }: BarChartProps) {
+export default function BarChart({ labels, values, horizontal }: BarChartProps) {
+  if (horizontal) {
+    const rowHeight = 32;
+    const labelWidth = 200;
+    const barAreaWidth = 260;
+    const totalWidth = labelWidth + barAreaWidth + 40;
+    const totalHeight = labels.length * rowHeight + 8;
+    const maxValue = Math.max(...values, 1);
+
+    return (
+      <svg viewBox={`0 0 ${totalWidth} ${totalHeight}`} className="w-full" role="img" aria-label="Biểu đồ lượt luyện tập 7 ngày">
+        {values.map((value, index) => {
+          const y = index * rowHeight + 4;
+          const barW = value > 0 ? Math.max((value / maxValue) * barAreaWidth, 3) : 0;
+          return (
+            <g key={index}>
+              <text x={labelWidth - 8} y={y + rowHeight / 2 + 4} textAnchor="end" className="fill-slate-600 text-[11px]">
+                {labels[index]}
+              </text>
+              <rect x={labelWidth} y={y + 6} width={barW} height={rowHeight - 12} rx="3" className="fill-emerald-500">
+                <title>{`${labels[index]}: ${value}`}</title>
+              </rect>
+              <text x={labelWidth + barW + 6} y={y + rowHeight / 2 + 4} className="fill-slate-500 text-[11px]">
+                {value}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  }
+
   const width = 520;
   const height = 180;
   const padding = 28;
@@ -31,7 +64,7 @@ export default function BarChart({ labels, values }: BarChartProps) {
         const y = padding + plotHeight - barHeight;
 
         return (
-          <rect key={`${labels[index]}-${value}`} x={x} y={y} width={barWidth} height={barHeight} rx="3" fill="currentColor">
+          <rect key={`bar-${index}`} x={x} y={y} width={barWidth} height={barHeight} rx="3" fill="currentColor">
             <title>{`${labels[index]}: ${value}`}</title>
           </rect>
         );
@@ -39,7 +72,7 @@ export default function BarChart({ labels, values }: BarChartProps) {
       {labels.map((label, index) => {
         const x = padding + step * index + step / 2;
         return (
-          <text key={label} x={x} y={height - 5} textAnchor="middle" className="fill-slate-500 text-[11px]">
+          <text key={`label-${index}`} x={x} y={height - 5} textAnchor="middle" className="fill-slate-500 text-[11px]">
             {label}
           </text>
         );

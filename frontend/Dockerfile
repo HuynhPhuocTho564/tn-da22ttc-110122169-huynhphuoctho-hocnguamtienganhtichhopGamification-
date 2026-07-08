@@ -6,9 +6,9 @@
 FROM node:24-alpine AS deps
 WORKDIR /app
 
-# Install dependencies only when needed
+# Install all dependencies (including devDependencies needed for build)
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Stage 2: Builder
 FROM node:24-alpine AS builder
@@ -18,7 +18,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma Client (needs DATABASE_URL at build time, but doesn't connect)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN npx prisma generate
 
 # Build Next.js app

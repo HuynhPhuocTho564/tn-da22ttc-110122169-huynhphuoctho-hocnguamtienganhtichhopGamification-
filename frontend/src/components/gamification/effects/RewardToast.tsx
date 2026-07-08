@@ -22,6 +22,8 @@ function getToastStyle(event: RewardEvent): { icon: string; bgColor: string } {
       return { icon: "🔥", bgColor: "bg-orange-500" };
     case "level_up":
       return { icon: "🎯", bgColor: "bg-yellow-500" };
+    case "purchase":
+      return { icon: "🛍️", bgColor: "bg-emerald-500" };
     default:
       return { icon: "🎉", bgColor: "bg-neutral-700" };
   }

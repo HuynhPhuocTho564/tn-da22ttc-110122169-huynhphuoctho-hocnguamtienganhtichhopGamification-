@@ -9,7 +9,7 @@
 
 import { useMemo, type ComponentType, type CSSProperties } from "react";
 import ProgressRing from "@/components/ui/ProgressRing";
-import { Palmtree, Mountain, Swords, Flame, Trees, Anchor, Sailboat, Wind, Sparkles, Crown, type LucideIcon } from "lucide-react";
+import { Palmtree, Waves, Swords, Flame, type LucideIcon } from "lucide-react";
 import { getBiomeForTopic } from "../utils/islandUtils";
 import type { IslandData } from "../types/island";
 import { getIslandMasteryStars, getMasteryStarsDisplay } from "@/lib/gamification/scoring-helpers";
@@ -34,10 +34,13 @@ const GRADIENT: Record<string, string> = {
  */
 const BIOME_ICONS: Record<string, LucideIcon> = {
   vowels: Palmtree,
-  consonants: Mountain,
+  consonants: Waves,
   pairs: Swords,
   stress: Flame,
 };
+
+/** Fallback icon for biomes without a specific landmark */
+const FALLBACK_ICON: LucideIcon = Palmtree;
 
 /**
  * Hex colors for inline SVG fills (isometric island).
@@ -63,31 +66,19 @@ interface Decor {
   minPercent: number;
   /** When true, decoration gets ongoing `motion-safe:animate-pulse` after entry scale-in (e.g. campfire) */
   pulse?: boolean;
+  /** When true, decoration stays at fixed position (no centering transform) — for landmarks like tree, lighthouse */
+  fixed?: boolean;
+  /** Animation type for animals: float (up/down), swim (side-to-side), fly (hovering) */
+  animate?: "float" | "swim" | "fly";
   /** Stage 1-4 — populated by flatMap in component, used as React key seed */
   stage?: 1 | 2 | 3 | 4;
 }
 
-/**
- * Lucide icons used as decorations, indexed by their "lucide:Name" string.
- * Each icon gets a Tailwind color hint matching its biome semantics.
- */
-const LUCIDE_DECOR: Record<string, { icon: LucideIcon; colorClass: string }> = {
-  Trees:    { icon: Trees,    colorClass: "text-emerald-700" },
-  Mountain: { icon: Mountain, colorClass: "text-slate-700" },
-  Anchor:   { icon: Anchor,   colorClass: "text-blue-800" },
-  Sailboat: { icon: Sailboat, colorClass: "text-blue-700" },
-  Wind:     { icon: Wind,     colorClass: "text-sky-600" },
-  Sparkles: { icon: Sparkles, colorClass: "text-amber-500" },
-  Swords:   { icon: Swords,   colorClass: "text-purple-700" },
-  Crown:    { icon: Crown,    colorClass: "text-yellow-500" },
-  PalmTree: { icon: Palmtree, colorClass: "text-emerald-700" },
-};
-
 const DECOR_SIZE: Record<string, { emoji: string; svgW: number; svgH: number; wrapper: string }> = {
-  sm: { emoji: "text-sm", svgW: 28, svgH: 40, wrapper: "h-7 w-7" },
-  md: { emoji: "text-lg", svgW: 40, svgH: 56, wrapper: "h-9 w-9" },
-  lg: { emoji: "text-xl", svgW: 56, svgH: 80, wrapper: "h-11 w-11" },
-  xl: { emoji: "text-2xl", svgW: 72, svgH: 100, wrapper: "h-14 w-14" },
+  sm: { emoji: "text-lg", svgW: 36, svgH: 50, wrapper: "h-9 w-9" },
+  md: { emoji: "text-xl", svgW: 50, svgH: 70, wrapper: "h-12 w-12" },
+  lg: { emoji: "text-2xl", svgW: 70, svgH: 100, wrapper: "h-16 w-16" },
+  xl: { emoji: "text-3xl", svgW: 90, svgH: 130, wrapper: "h-20 w-20" },
 };
 
 interface StageAssets {
@@ -111,135 +102,134 @@ const STAGE_MAP: Record<string, ReadonlyArray<StageAssets>> = {
   vowels: [
     { stage: 1, items: [
       { content: "🌿", x: "10%", y: 185, size: "md", minPercent: 0 },
-      { content: "🌿", x: "85%", y: 170, size: "sm", minPercent: 0 },
-      { content: "🌱", x: "75%", y: 210, size: "sm", minPercent: 15 },
-      { content: "/illustrations/elements/palm-tree-simple.svg", x: "8%", y: 30, size: "xl", minPercent: 15 },
+      { content: "🌿", x: "88%", y: 170, size: "sm", minPercent: 0 },
+      { content: "🌱", x: "78%", y: 210, size: "sm", minPercent: 15 },
+      { content: "/illustrations/elements/palm-tree-simple.svg", x: "5%", y: 20, size: "xl", minPercent: 15, fixed: true },
     ]},
     { stage: 2, items: [
-      { content: "🌴", x: "50%", y: 15, size: "xl", minPercent: 20 },
-      { content: "⛺", x: "50%", y: 100, size: "lg", minPercent: 25 },
-      { content: "/illustrations/elements/palm-tree-simple.svg", x: "88%", y: 20, size: "xl", minPercent: 30 },
-      { content: "🌸", x: "20%", y: 195, size: "md", minPercent: 30 },
-      { content: "lucide:Trees", x: "60%", y: 195, size: "md", minPercent: 25 },
-      { content: "lucide:Mountain", x: "20%", y: 200, size: "sm", minPercent: 40 },
+      { content: "🌴", x: "92%", y: 25, size: "xl", minPercent: 20, fixed: true },
+      { content: "⛺", x: "15%", y: 100, size: "lg", minPercent: 25 },
+      { content: "/illustrations/elements/palm-tree-simple.svg", x: "90%", y: 15, size: "xl", minPercent: 30, fixed: true },
+      { content: "🌸", x: "22%", y: 195, size: "md", minPercent: 30 },
     ]},
     { stage: 3, items: [
-      { content: "🦜", x: "15%", y: 25, size: "lg", minPercent: 50 },
-      { content: "🌺", x: "80%", y: 120, size: "md", minPercent: 50 },
-      { content: "🔥", x: "70%", y: 90, size: "md", minPercent: 55, pulse: true },
-      { content: "🦋", x: "70%", y: 15, size: "md", minPercent: 65 },
-      { content: "lucide:Sailboat", x: "85%", y: 175, size: "md", minPercent: 55 },
-      { content: "🐒", x: "90%", y: 130, size: "lg", minPercent: 80 },
-      { content: "🌻", x: "30%", y: 220, size: "md", minPercent: 80 },
+      { content: "🦜", x: "12%", y: 55, size: "lg", minPercent: 50, animate: "fly" },
+      { content: "🌺", x: "82%", y: 130, size: "md", minPercent: 50 },
+      { content: "🔥", x: "72%", y: 95, size: "md", minPercent: 55, pulse: true },
+      { content: "🦋", x: "75%", y: 40, size: "md", minPercent: 65, animate: "fly" },
+      { content: "⛵", x: "88%", y: 180, size: "md", minPercent: 55 },
+      { content: "🐒", x: "92%", y: 140, size: "lg", minPercent: 80, animate: "float" },
+      { content: "🌻", x: "28%", y: 225, size: "md", minPercent: 80 },
+      { content: "🐛", x: "8%", y: 140, size: "sm", minPercent: 60, animate: "float" },
+      { content: "🐝", x: "85%", y: 80, size: "sm", minPercent: 70, animate: "fly" },
     ]},
     { stage: 4, items: [
-      { content: "🚩", x: "50%", y: 20, size: "lg", minPercent: 85 },
-      { content: "✨", x: "30%", y: 60, size: "sm", minPercent: 90 },
-      { content: "✨", x: "70%", y: 70, size: "sm", minPercent: 90 },
-      { content: "⛵", x: "85%", y: 175, size: "md", minPercent: 90 },
-      { content: "lucide:Crown", x: "50%", y: 195, size: "lg", minPercent: 90 },
+      { content: "🚩", x: "50%", y: 15, size: "lg", minPercent: 85 },
+      { content: "✨", x: "30%", y: 55, size: "sm", minPercent: 90 },
+      { content: "✨", x: "72%", y: 65, size: "sm", minPercent: 90 },
+      { content: "⛵", x: "88%", y: 185, size: "md", minPercent: 90 },
+      { content: "👑", x: "50%", y: 200, size: "lg", minPercent: 90 },
       { content: "🏆", x: "50%", y: 5, size: "xl", minPercent: 100 },
     ]},
   ],
 
   consonants: [
     { stage: 1, items: [
-      { content: "🌊", x: "15%", y: 210, size: "md", minPercent: 0 },
-      { content: "🌊", x: "80%", y: 220, size: "sm", minPercent: 0 },
-      { content: "🐚", x: "10%", y: 155, size: "md", minPercent: 15 },
-      { content: "⚓", x: "88%", y: 90, size: "lg", minPercent: 15 },
+      { content: "🌊", x: "12%", y: 215, size: "md", minPercent: 0 },
+      { content: "🌊", x: "85%", y: 225, size: "sm", minPercent: 0 },
+      { content: "🐚", x: "8%", y: 160, size: "md", minPercent: 15 },
+      { content: "⚓", x: "90%", y: 95, size: "lg", minPercent: 15 },
     ]},
     { stage: 2, items: [
-      { content: "🪨", x: "20%", y: 180, size: "lg", minPercent: 20 },
-      { content: "🗼", x: "50%", y: 15, size: "xl", minPercent: 25 },
-      { content: "/illustrations/elements/lighthouse-simple.svg", x: "85%", y: 5, size: "xl", minPercent: 30 },
-      { content: "🐟", x: "20%", y: 220, size: "md", minPercent: 30 },
-      { content: "lucide:Anchor", x: "25%", y: 165, size: "md", minPercent: 25 },
-      { content: "lucide:Mountain", x: "50%", y: 200, size: "sm", minPercent: 40 },
+      { content: "🪨", x: "18%", y: 185, size: "lg", minPercent: 20 },
+      { content: "🗼", x: "92%", y: 20, size: "xl", minPercent: 25, fixed: true },
+      { content: "/illustrations/elements/lighthouse-simple.svg", x: "88%", y: 5, size: "xl", minPercent: 30, fixed: true },
+      { content: "🐟", x: "15%", y: 225, size: "md", minPercent: 30, animate: "swim" },
+      { content: "🐚", x: "22%", y: 170, size: "md", minPercent: 25 },
     ]},
     { stage: 3, items: [
-      { content: "🐬", x: "6%", y: 80, size: "xl", minPercent: 50 },
-      { content: "🦀", x: "75%", y: 180, size: "lg", minPercent: 50 },
-      { content: "🔥", x: "40%", y: 90, size: "md", minPercent: 55, pulse: true },
-      { content: "🐙", x: "90%", y: 140, size: "lg", minPercent: 65 },
-      { content: "/illustrations/elements/boat-simple.svg", x: "10%", y: 25, size: "xl", minPercent: 65 },
-      { content: "🐋", x: "5%", y: 195, size: "xl", minPercent: 80 },
-      { content: "lucide:Sailboat", x: "70%", y: 160, size: "lg", minPercent: 55 },
+      { content: "🐬", x: "5%", y: 85, size: "xl", minPercent: 50, animate: "swim" },
+      { content: "🦀", x: "78%", y: 185, size: "lg", minPercent: 50, animate: "float" },
+      { content: "🔥", x: "38%", y: 95, size: "md", minPercent: 55, pulse: true },
+      { content: "🐙", x: "92%", y: 145, size: "lg", minPercent: 65, animate: "swim" },
+      { content: "/illustrations/elements/boat-simple.svg", x: "8%", y: 20, size: "xl", minPercent: 65, fixed: true },
+      { content: "🐋", x: "3%", y: 200, size: "xl", minPercent: 80, animate: "swim" },
+      { content: "⛵", x: "72%", y: 165, size: "lg", minPercent: 55 },
+      { content: "🐠", x: "25%", y: 140, size: "sm", minPercent: 55, animate: "swim" },
+      { content: "🦐", x: "85%", y: 210, size: "sm", minPercent: 65, animate: "float" },
     ]},
     { stage: 4, items: [
-      { content: "🚩", x: "50%", y: 20, size: "lg", minPercent: 85 },
-      { content: "✨", x: "30%", y: 60, size: "sm", minPercent: 90 },
-      { content: "✨", x: "70%", y: 70, size: "sm", minPercent: 90 },
-      { content: "⛵", x: "85%", y: 175, size: "md", minPercent: 90 },
-      { content: "lucide:Crown", x: "50%", y: 195, size: "lg", minPercent: 90 },
+      { content: "🚩", x: "50%", y: 15, size: "lg", minPercent: 85 },
+      { content: "✨", x: "28%", y: 55, size: "sm", minPercent: 90 },
+      { content: "✨", x: "72%", y: 65, size: "sm", minPercent: 90 },
+      { content: "⛵", x: "88%", y: 185, size: "md", minPercent: 90 },
+      { content: "👑", x: "50%", y: 205, size: "lg", minPercent: 90 },
       { content: "🏆", x: "50%", y: 5, size: "xl", minPercent: 100 },
     ]},
   ],
 
   pairs: [
     { stage: 1, items: [
-      { content: "🌿", x: "12%", y: 180, size: "sm", minPercent: 0 },
-      { content: "🪨", x: "85%", y: 195, size: "md", minPercent: 0 },
-      { content: "/illustrations/elements/crystal-simple.svg", x: "6%", y: 35, size: "xl", minPercent: 15 },
-      { content: "✨", x: "88%", y: 45, size: "lg", minPercent: 15 },
+      { content: "🌿", x: "10%", y: 185, size: "sm", minPercent: 0 },
+      { content: "🪨", x: "88%", y: 200, size: "md", minPercent: 0 },
+      { content: "/illustrations/elements/crystal-simple.svg", x: "5%", y: 25, size: "xl", minPercent: 15, fixed: true },
+      { content: "✨", x: "90%", y: 45, size: "lg", minPercent: 15 },
     ]},
     { stage: 2, items: [
-      { content: "⚔️", x: "50%", y: 15, size: "xl", minPercent: 20 },
-      { content: "⛺", x: "50%", y: 100, size: "lg", minPercent: 25 },
-      { content: "⛩️", x: "50%", y: 5, size: "xl", minPercent: 30 },
-      { content: "✨", x: "20%", y: 140, size: "md", minPercent: 30 },
-      { content: "lucide:Sparkles", x: "55%", y: 130, size: "md", minPercent: 25 },
-      { content: "lucide:Swords", x: "40%", y: 175, size: "md", minPercent: 40 },
+      { content: "⚔️", x: "50%", y: 10, size: "xl", minPercent: 20 },
+      { content: "⛺", x: "15%", y: 105, size: "lg", minPercent: 25 },
+      { content: "⛩️", x: "92%", y: 15, size: "xl", minPercent: 30, fixed: true },
+      { content: "✨", x: "18%", y: 145, size: "md", minPercent: 30 },
     ]},
     { stage: 3, items: [
-      { content: "🦉", x: "85%", y: 130, size: "lg", minPercent: 50 },
-      { content: "/illustrations/elements/crystal-simple.svg", x: "92%", y: 155, size: "xl", minPercent: 50 },
-      { content: "🔥", x: "35%", y: 90, size: "md", minPercent: 55, pulse: true },
-      { content: "🌙", x: "6%", y: 15, size: "xl", minPercent: 65 },
-      { content: "🦋", x: "20%", y: 25, size: "lg", minPercent: 65 },
-      { content: "lucide:Mountain", x: "60%", y: 110, size: "md", minPercent: 55 },
+      { content: "🦉", x: "88%", y: 135, size: "lg", minPercent: 50, animate: "float" },
+      { content: "/illustrations/elements/crystal-simple.svg", x: "95%", y: 160, size: "xl", minPercent: 50, fixed: true },
+      { content: "🔥", x: "32%", y: 95, size: "md", minPercent: 55, pulse: true },
+      { content: "🌙", x: "5%", y: 10, size: "xl", minPercent: 65 },
+      { content: "🦋", x: "18%", y: 30, size: "lg", minPercent: 65, animate: "fly" },
+      { content: "🐱", x: "8%", y: 145, size: "sm", minPercent: 60, animate: "float" },
+      { content: "🦊", x: "92%", y: 100, size: "sm", minPercent: 70, animate: "float" },
     ]},
     { stage: 4, items: [
-      { content: "🚩", x: "50%", y: 20, size: "lg", minPercent: 85 },
-      { content: "✨", x: "30%", y: 60, size: "sm", minPercent: 90 },
-      { content: "✨", x: "70%", y: 70, size: "sm", minPercent: 90 },
-      { content: "⛵", x: "85%", y: 175, size: "md", minPercent: 90 },
-      { content: "🦄", x: "82%", y: 75, size: "xl", minPercent: 80 },
-      { content: "💫", x: "25%", y: 45, size: "lg", minPercent: 80 },
-      { content: "lucide:Crown", x: "50%", y: 165, size: "lg", minPercent: 90 },
+      { content: "🚩", x: "50%", y: 15, size: "lg", minPercent: 85 },
+      { content: "✨", x: "28%", y: 55, size: "sm", minPercent: 90 },
+      { content: "✨", x: "72%", y: 65, size: "sm", minPercent: 90 },
+      { content: "⛵", x: "88%", y: 185, size: "md", minPercent: 90 },
+      { content: "🦄", x: "85%", y: 80, size: "xl", minPercent: 80, animate: "float" },
+      { content: "💫", x: "22%", y: 45, size: "lg", minPercent: 80 },
+      { content: "👑", x: "50%", y: 170, size: "lg", minPercent: 90 },
       { content: "🏆", x: "50%", y: 5, size: "xl", minPercent: 100 },
     ]},
   ],
 
   stress: [
     { stage: 1, items: [
-      { content: "🪨", x: "15%", y: 195, size: "md", minPercent: 0 },
-      { content: "🪨", x: "82%", y: 180, size: "sm", minPercent: 0 },
-      { content: "🔥", x: "55%", y: 75, size: "lg", minPercent: 15 },
-      { content: "💨", x: "42%", y: 18, size: "md", minPercent: 15 },
+      { content: "🪨", x: "12%", y: 200, size: "md", minPercent: 0 },
+      { content: "🪨", x: "85%", y: 185, size: "sm", minPercent: 0 },
+      { content: "🔥", x: "58%", y: 80, size: "lg", minPercent: 15 },
+      { content: "💨", x: "40%", y: 12, size: "md", minPercent: 15 },
     ]},
     { stage: 2, items: [
-      { content: "🪨", x: "20%", y: 200, size: "lg", minPercent: 20 },
-      { content: "🌋", x: "50%", y: 5, size: "xl", minPercent: 25 },
-      { content: "/illustrations/elements/volcano-simple.svg", x: "48%", y: 20, size: "xl", minPercent: 30 },
-      { content: "lucide:Mountain", x: "75%", y: 200, size: "sm", minPercent: 25 },
-      { content: "lucide:Wind", x: "20%", y: 150, size: "md", minPercent: 40 },
+      { content: "🪨", x: "18%", y: 205, size: "lg", minPercent: 20 },
+      { content: "🌋", x: "50%", y: 5, size: "lg", minPercent: 25 },
+      { content: "/illustrations/elements/volcano-simple.svg", x: "48%", y: 8, size: "lg", minPercent: 30, fixed: true },
     ]},
     { stage: 3, items: [
-      { content: "⚡", x: "12%", y: 65, size: "lg", minPercent: 50 },
-      { content: "🦅", x: "82%", y: 45, size: "lg", minPercent: 50 },
-      { content: "🔥", x: "50%", y: 90, size: "md", minPercent: 55, pulse: true },
-      { content: "🔥", x: "28%", y: 110, size: "xl", minPercent: 65 },
-      { content: "🐉", x: "8%", y: 135, size: "xl", minPercent: 80 },
-      { content: "⚡", x: "72%", y: 95, size: "xl", minPercent: 80 },
-      { content: "lucide:Sparkles", x: "65%", y: 155, size: "md", minPercent: 55 },
+      { content: "⚡", x: "10%", y: 70, size: "lg", minPercent: 50 },
+      { content: "🦅", x: "85%", y: 50, size: "lg", minPercent: 50, animate: "fly" },
+      { content: "🔥", x: "52%", y: 95, size: "md", minPercent: 55, pulse: true },
+      { content: "🔥", x: "25%", y: 115, size: "xl", minPercent: 65 },
+      { content: "🐉", x: "5%", y: 140, size: "xl", minPercent: 80, animate: "fly" },
+      { content: "⚡", x: "75%", y: 100, size: "xl", minPercent: 80 },
+      { content: "🦎", x: "90%", y: 145, size: "sm", minPercent: 60, animate: "float" },
+      { content: "🐍", x: "8%", y: 195, size: "sm", minPercent: 70, animate: "float" },
     ]},
     { stage: 4, items: [
-      { content: "🚩", x: "50%", y: 20, size: "lg", minPercent: 85 },
-      { content: "✨", x: "30%", y: 60, size: "sm", minPercent: 90 },
-      { content: "✨", x: "70%", y: 70, size: "sm", minPercent: 90 },
-      { content: "⛵", x: "85%", y: 175, size: "md", minPercent: 90 },
-      { content: "lucide:Crown", x: "50%", y: 200, size: "lg", minPercent: 90 },
+      { content: "🚩", x: "50%", y: 15, size: "lg", minPercent: 85 },
+      { content: "✨", x: "28%", y: 55, size: "sm", minPercent: 90 },
+      { content: "✨", x: "72%", y: 65, size: "sm", minPercent: 90 },
+      { content: "⛵", x: "88%", y: 185, size: "md", minPercent: 90 },
+      { content: "👑", x: "50%", y: 210, size: "lg", minPercent: 90 },
       { content: "🏆", x: "50%", y: 5, size: "xl", minPercent: 100 },
     ]},
   ],
@@ -324,7 +314,7 @@ export default function IslandNode({ island, onClick }: IslandNodeProps) {
             {(() => {
               const svgColors = BIOME_SVG_COLORS[bId] ?? BIOME_SVG_COLORS["vowels"];
               const BiomeIcon: ComponentType<{ className?: string; style?: CSSProperties; "aria-hidden"?: boolean }> =
-                BIOME_ICONS[bId] ?? Trees;
+                BIOME_ICONS[bId] ?? FALLBACK_ICON;
               return (
                 <div className={`relative z-10 ${island.completionPercent < 100 ? "motion-safe:animate-boat-bob" : ""}`}>
                   <svg
@@ -365,9 +355,6 @@ export default function IslandNode({ island, onClick }: IslandNodeProps) {
               {decorations.map((d, i) => {
                 const sz = DECOR_SIZE[d.size];
                 const isSvg = d.content.startsWith("/");
-                const isLucide = d.content.startsWith("lucide:");
-                const lucideName = isLucide ? d.content.slice("lucide:".length) : "";
-                const LucideDecor = isLucide ? LUCIDE_DECOR[lucideName] : undefined;
 
                 return (
                   <div
@@ -376,16 +363,14 @@ export default function IslandNode({ island, onClick }: IslandNodeProps) {
                     style={{
                       left: d.x,
                       top: d.y,
-                      transform: "translate(-50%, -50%)",
+                      transform: d.fixed ? "none" : "translate(-50%, -50%)",
                       animationDelay: `${(island.completionPercent - d.minPercent) * 20}ms`,
                     }}
                   >
                     <div
                       className={`flex items-center justify-center ${
                         d.pulse ? "motion-safe:animate-pulse" : ""
-                      } ${
-                        isSvg || isLucide ? "" : `rounded-full bg-white/60 shadow-sm backdrop-blur-[2px] ${sz.wrapper}`
-                      }`}
+                      } ${d.animate === "float" ? "motion-safe:animate-[animal-float_3s_ease-in-out_0.5s_infinite]" : ""} ${d.animate === "swim" ? "motion-safe:animate-[animal-swim_4s_ease-in-out_0.5s_infinite]" : ""} ${d.animate === "fly" ? "motion-safe:animate-[animal-fly_2.5s_ease-in-out_0.5s_infinite]" : ""}`}
                     >
                       {isSvg ? (
                         <img
@@ -393,11 +378,6 @@ export default function IslandNode({ island, onClick }: IslandNodeProps) {
                           alt=""
                           className="drop-shadow-lg"
                           style={{ width: sz.svgW, height: sz.svgH, objectFit: "contain" }}
-                        />
-                      ) : isLucide && LucideDecor ? (
-                        <LucideDecor.icon
-                          className={`${sz.wrapper} ${LucideDecor.colorClass} drop-shadow-md`}
-                          aria-hidden="true"
                         />
                       ) : (
                         <span className={sz.emoji}>{d.content}</span>
@@ -451,7 +431,7 @@ export default function IslandNode({ island, onClick }: IslandNodeProps) {
                 Sương mù đang che phủ.
               </p>
               <p className="mt-2 text-sm text-slate-300 drop-shadow">
-                Hoàn thành đảo Nguyên Âm để khám phá.
+                Hoàn thành {island.prerequisiteName ?? "đảo trước"} để khám phá.
               </p>
             </div>
           </>
@@ -526,8 +506,13 @@ export default function IslandNode({ island, onClick }: IslandNodeProps) {
           {/* Goal-Gradient Effect: journey-style encouragement removed — completionPercent already shown in ProgressRing + linear bar (data redundancy). */}
         </div>
         {!island.isLocked && (
-          <span className="ml-3 shrink-0 rounded-lg bg-primary-100 px-4 py-2 text-base font-bold text-primary-800 transition group-hover:bg-primary-200">
-            Khám phá đảo →
+          <span
+            className="ml-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white shadow-md transition-all group-hover:bg-primary-700 group-hover:scale-110 group-hover:shadow-lg"
+            aria-label={island.completionPercent === 100 ? `Ôn tập lại ${island.name}` : `Khám phá ${island.name}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 ml-0.5" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </span>
         )}
       </div>

@@ -93,14 +93,11 @@ export default function ChooseAssimilationQuestion({
             const isCorrectOpt = checkCorrect(option.content);
             const isSelected = option.content === selectedAnswer;
             let cls = "border-neutral-200 bg-white text-neutral-800 hover:border-primary-300";
-            let statusIcon = "";
             if (isAnswered) {
               if (isCorrectOpt) {
                 cls = "border-success-500 bg-success-50 text-success-700 ring-4 ring-success-100";
-                statusIcon = "✓";
               } else if (isSelected) {
                 cls = "border-error-500 bg-error-50 text-error-700 animate-shake";
-                statusIcon = "✗";
               } else {
                 cls = "border-neutral-200 bg-neutral-50 text-neutral-400";
               }
@@ -118,11 +115,10 @@ export default function ChooseAssimilationQuestion({
                 }
                 disabled={isAnswered}
                 aria-pressed={isSelected}
-                aria-label={isAnswered ? `${option.content} — ${statusIcon === "✓" ? "Đúng" : statusIcon === "✗" ? "Sai" : ""}` : option.content}
+                aria-label={isAnswered ? `${option.content} — ${isCorrectOpt ? "Đúng" : isSelected ? "Sai" : ""}` : option.content}
                 className={`h-24 min-w-48 rounded-xl border-4 px-6 font-ipa text-2xl font-bold transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 ${cls}`}
               >
                 {option.content}
-                {statusIcon && <span className="ml-1 text-lg" aria-hidden="true">{statusIcon}</span>}
               </button>
             );
           })}

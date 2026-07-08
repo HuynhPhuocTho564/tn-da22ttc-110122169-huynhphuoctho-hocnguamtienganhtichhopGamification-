@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       completedExercises: row.completedExercises,
       badges: row.user.userBadges.map((ub) => ({
         name: ub.badge.name,
-        type: ub.badge.type,
+        rarity: ub.badge.type,
       })),
     }));
 
@@ -109,23 +109,39 @@ function parseLimit(value: string | null): number {
 
 /**
  * Lấy rank/score/tier của current user trong bảng tuần hiện tại.
- * Trả về null nếu user chưa có entry trong bảng tuần này (chưa làm bài / điểm danh).
+ * Trả về default data nếu user chưa có entry (chưa làm bài / điểm danh).
  */
 async function getCurrentUserSnapshot(
   userId: string | undefined,
   tierFilter: LeagueTier | null,
   period: string,
-): Promise<{ rank: number; score: number; currentTier: string } | null> {
-  if (!userId) return null;
+): Promise<{ rank: number; score: number; currentTier: string; level: number; xp: number; totalPlayers: number }> {
+  if (!userId) return { rank: 0, score: 0, currentTier: "bronze", level: 1, xp: 0, totalPlayers: 0 };
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { currentTier: true, level: true, xp: true },
+  });
+
+  if (!user) return { rank: 0, score: 0, currentTier: "bronze", level: 1, xp: 0, totalPlayers: 0 };
 
   const entry = await prisma.leaderboard.findUnique({
     where: {
       userId_type_period: { userId, type: "tuan", period },
     },
-    include: { user: { select: { currentTier: true } } },
   });
 
-  if (!entry) return null;
+  if (!entry) {
+    // User chưa có điểm tuần này — trả về tier/level từ profile
+    return {
+      rank: 0,
+      score: 0,
+      currentTier: user.currentTier,
+      level: user.level,
+      xp: user.xp,
+      totalPlayers: 0,
+    };
+  }
 
   const where = tierFilter
     ? {
@@ -141,6 +157,9 @@ async function getCurrentUserSnapshot(
   return {
     rank: betterCount + 1,
     score: entry.score,
-    currentTier: entry.user.currentTier,
+    currentTier: user.currentTier,
+    level: user.level,
+    xp: user.xp,
+    totalPlayers: 0,
   };
 }

@@ -7,6 +7,7 @@ import ProfileForm from "./ProfileForm";
 import AchievementCard from "@/components/profile/AchievementCard";
 import { TIER_DISPLAY, isValidTier, type LeagueTier } from "@/lib/gamification/league";
 import { getHighestTier } from "@/lib/profile/highest-tier";
+import type { CosmeticFrame } from "@/components/ui/AvatarWithFrame";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -15,7 +16,7 @@ export default async function ProfilePage() {
     redirect("/login?callbackUrl=/profile");
   }
 
-  const [user, highestTier] = await Promise.all([
+  const [user, highestTier, equippedCosmetic] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -34,6 +35,10 @@ export default async function ProfilePage() {
       },
     }),
     getHighestTier(session.user.id),
+    prisma.userCosmetic.findFirst({
+      where: { userId: session.user.id, equipped: true },
+      select: { itemId: true },
+    }),
   ]);
 
   if (!user) {
@@ -41,6 +46,7 @@ export default async function ProfilePage() {
   }
 
   const avatarUrl = getAvatarUrl(user.username, user.avatarUrl);
+  const equippedFrame = (equippedCosmetic?.itemId as CosmeticFrame) ?? null;
 
   const inventoryItems = [
     { icon: "❄️", name: "Bùa Đóng Băng", count: user.streakFreezes },
@@ -145,6 +151,7 @@ export default async function ProfilePage() {
             avatarUrl,
             level: user.level,
             xp: user.xp,
+            equippedFrame,
           }}
         />
       </main>

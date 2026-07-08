@@ -87,6 +87,7 @@ async function main() {
         mode: "listen_choose",
         answerType: "phoneme",
         stage: q.stage,
+        showIpa: q.showIpa,
         word: q.word,
         ipa: q.ipa,
         audioUrl: q.audioUrl,

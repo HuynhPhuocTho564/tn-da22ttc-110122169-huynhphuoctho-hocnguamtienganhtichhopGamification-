@@ -7,7 +7,7 @@
  * maintainable-code: ≤ 100 dòng, presentational.
  */
 
-import type { IslandData, MapOverviewProps } from "../types/island";
+import type { MapOverviewProps } from "../types/island";
 
 export default function MapOverview({
   islands,
@@ -19,14 +19,14 @@ export default function MapOverview({
   const completedCamps = islands.reduce((sum, i) => sum + i.completedCamps, 0);
 
   return (
-    <section className="mb-8">
+    <section className="mb-8 pt-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         {/* Title — typography chuẩn WCAG AAA: heading bold + body normal, không xám */}
         <div>
-          <p className="text-sm font-bold uppercase tracking-widest text-primary-800">
+          <p className="text-base font-bold uppercase tracking-widest text-primary-800">
             🏝️ Quần đảo IPA
           </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-neutral-900">
+          <h1 className="mt-1 text-4xl font-bold tracking-tight text-neutral-900">
             Hành trình phát âm
           </h1>
           <p className="mt-3 max-w-xl text-base font-normal text-neutral-900">
@@ -77,7 +77,7 @@ function StatCard({
         : "border-neutral-200 bg-white"
     }`}>
       <span className="text-xl" aria-hidden="true">{icon}</span>
-      <div className={`mt-1 text-2xl font-bold truncate ${highlight ? "text-primary-800" : "text-neutral-900"}`}>
+      <div className={`mt-1 text-2xl font-bold ${highlight ? "text-primary-800" : "text-neutral-900"}`}>
         {value}
       </div>
       <div className="text-sm font-medium text-neutral-900">{label}</div>

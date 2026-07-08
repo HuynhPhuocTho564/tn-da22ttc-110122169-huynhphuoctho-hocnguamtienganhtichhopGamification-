@@ -4,6 +4,7 @@ import MissionCard from "@/components/gamification/MissionCard";
 import TreasureChest from "@/components/gamification/TreasureChest";
 import MissionsHero from "@/components/gamification/MissionsHero";
 import WeeklyChallengeCard from "@/components/gamification/WeeklyChallengeCard";
+import MainQuestList from "@/components/gamification/MainQuestList";
 import {
   MISSION_POOL,
   TREASURE_CHEST_REWARD,
@@ -54,7 +55,7 @@ export default async function MissionsPage() {
   const allCompleted = completedCount === missions.length;
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-10 sm:px-6 lg:px-8">
+    <div className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <main className="mx-auto max-w-4xl space-y-8">
         {/* ─── Back button ─── */}
         <Link
@@ -129,6 +130,19 @@ export default async function MissionsPage() {
           </div>
           <WeeklyChallengeCard />
         </section>
+
+        {/* ─── Main Quests ─── */}
+        {isAuthenticated && (
+          <section aria-label="Nhiệm vụ chính">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-3xl" aria-hidden="true">
+                🗺️
+              </span>
+              <h2 className="text-2xl font-bold text-neutral-900">Nhiệm vụ chính</h2>
+            </div>
+            <MainQuestList />
+          </section>
+        )}
 
         {/* ─── Tips ─── */}
         <section className="rounded-2xl border border-neutral-300 bg-white p-6 shadow-sm">

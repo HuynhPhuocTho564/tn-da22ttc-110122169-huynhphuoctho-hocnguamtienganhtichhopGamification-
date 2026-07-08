@@ -112,7 +112,7 @@ export default function WeeklyChallengeCard() {
 
   if (error || !data) return null;
 
-  const { challenge, participation, topParticipants } = data;
+  const { challenge, participation } = data;
   const progressPercent = Math.min(100, Math.round((participation.progress / challenge.targetValue) * 100));
   const metricLabel: Record<string, string> = {
     streak: "🔥 Chuỗi ngày",
@@ -124,10 +124,7 @@ export default function WeeklyChallengeCard() {
   return (
     <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-sm">
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-widest text-amber-700">
-          🏆 Thử thách tuần
-        </span>
+      <div className="mb-3 flex items-center justify-end">
         <span className="text-xs font-semibold text-amber-600" aria-label={`Còn lại ${timeLeft}`}>
           ⏱ {timeLeft}
         </span>
@@ -189,8 +186,8 @@ export default function WeeklyChallengeCard() {
           </span>
         )}
         {participation.claimedAt && (
-          <span className="rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-bold text-neutral-500">
-            ✅ Đã nhận thưởng
+          <span className="rounded-lg bg-success-100 px-2.5 py-1 text-xs font-bold text-success-700">
+            ✓ Đã nhận
           </span>
         )}
       </div>
@@ -200,30 +197,6 @@ export default function WeeklyChallengeCard() {
         <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
           ⚠️ {claimError}
         </p>
-      )}
-
-      {/* Top participants */}
-      {topParticipants.length > 0 && (
-        <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
-            Bảng xếp hạng
-          </p>
-          <ul className="space-y-1.5">
-            {topParticipants.map((p, i) => (
-              <li key={p.username} className="flex items-center gap-2 text-sm">
-                <span className="w-5 text-center font-bold text-amber-600">
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
-                </span>
-                <span className="flex-1 truncate font-medium text-neutral-800">
-                  {p.username}
-                </span>
-                <span className="text-xs font-semibold text-neutral-500">
-                  {p.progress}/{challenge.targetValue}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
       )}
     </div>
   );

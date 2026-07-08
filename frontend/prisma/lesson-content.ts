@@ -217,7 +217,7 @@ export const SENTENCES_T1_G01: SentenceItemData[] = [
     targetWords: ["sheep", "ship"],
     targetPhonemes: ["/iː/", "/ɪ/"],
     difficulty: 4,
-    ipa: "/ðə ˈʃip ər ɑn ðə ˈʃɪp/",
+    ipa: "/ðə ʃiːp ɑːr ɒn ðə ʃɪp/",
     translation: "Những con cừu ở trên con tàu.",
     status: "ACTIVE",
     sourceType: "MANUAL",
@@ -229,7 +229,7 @@ export const SENTENCES_T1_G01: SentenceItemData[] = [
     targetWords: ["feel", "sick", "sit"],
     targetPhonemes: ["/iː/", "/ɪ/"],
     difficulty: 5,
-    ipa: "/aɪ ˈfil sɪk wɛn aɪ sɪt hɪr/",
+    ipa: "/aɪ fiːl sɪk wɛn aɪ sɪt hɪə/",
     translation: "Tôi cảm thấy ốm khi ngồi ở đây.",
     status: "ACTIVE",
     sourceType: "MANUAL",
@@ -240,7 +240,7 @@ export const SENTENCES_T1_G01: SentenceItemData[] = [
     targetWords: ["seat", "sit"],
     targetPhonemes: ["/iː/", "/ɪ/"],
     difficulty: 4,
-    ipa: "/pliz ˈteɪk jər sit ən sɪt ˈdaʊn/",
+    ipa: "/pliːz teɪk jɔːr siːt ənd sɪt daʊn/",
     translation: "Xin hãy lấy chỗ ngồi và ngồi xuống.",
     status: "ACTIVE",
     sourceType: "MANUAL",
@@ -251,7 +251,7 @@ export const SENTENCES_T1_G01: SentenceItemData[] = [
     targetWords: ["heat", "hit"],
     targetPhonemes: ["/iː/", "/ɪ/"],
     difficulty: 4,
-    ipa: "/ðə hit wɪl hɪt əs ˈsun/",
+    ipa: "/ðə hiːt wɪl hɪt ʌs suːn/",
     status: "ACTIVE",
     sourceType: "MANUAL",
   },
@@ -706,6 +706,7 @@ export const SENTENCES_T4_G01: SentenceItemData[] = [
     targetWords: ["sheep", "ship", "shape"],
     targetPhonemes: ["/iː/", "/ɪ/", "/eɪ/"],
     difficulty: 8,
+    ipa: "/ðə ʃiːp ɒn ðə ʃɪp hæv ən ɒd ʃeɪp/",
     status: "ACTIVE",
     sourceType: "MANUAL",
     reviewNote: "Câu thử thách cao với 3 âm khác nhau",
@@ -716,6 +717,7 @@ export const SENTENCES_T4_G01: SentenceItemData[] = [
     targetWords: ["beat", "bit", "bat", "bet"],
     targetPhonemes: ["/iː/", "/ɪ/", "/æ/", "/e/"],
     difficulty: 9,
+    ipa: "/aɪ biːt ðə bɪt wɪð ə bæt ˈæftər aɪ bɛt/",
     status: "ACTIVE",
     sourceType: "MANUAL",
     reviewNote: "Tổng hợp 4 nguyên âm trong 1 câu",
@@ -833,6 +835,7 @@ export const SENTENCES_T4_G03: SentenceItemData[] = [
     targetWords: ["cap", "cab", "back"],
     targetPhonemes: ["/p/", "/b/", "/k/"],
     difficulty: 9,
+    ipa: "/pʊt ðə kæp ɪn ðə kæb bɪˈfɔːr juː ɡoʊ bæk/",
     status: "ACTIVE",
     sourceType: "MANUAL",
     reviewNote: "Thử thách phụ âm cuối - không nuốt",
@@ -843,6 +846,7 @@ export const SENTENCES_T4_G03: SentenceItemData[] = [
     targetWords: ["cat", "sat", "bag", "cap"],
     targetPhonemes: ["/t/", "/t/", "/g/", "/p/"],
     difficulty: 9,
+    ipa: "/ðə kæt sæt ɪn ðə bæɡ wɪð maɪ kæp/",
     status: "ACTIVE",
     sourceType: "MANUAL",
   },
@@ -872,9 +876,9 @@ export const MINIMAL_PAIRS_T1_G03: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T1_G03: SentenceItemData[] = [
-  { sentence: "My father had fun in the car.", soundGroupId: "map-t1-g03-central", targetWords: ["father", "fun", "car"], targetPhonemes: ["/ɑː/", "/ʌ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 âm trung tâm" },
-  { sentence: "Tell me about the cup.", soundGroupId: "map-t1-g03-central", targetWords: ["about", "cup"], targetPhonemes: ["/ə/", "/ʌ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "My heart was cold but I had fun.", soundGroupId: "map-t1-g03-central", targetWords: ["heart", "but", "fun"], targetPhonemes: ["/ɑː/", "/ʌ/"], difficulty: 6, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "My father had fun in the car.", soundGroupId: "map-t1-g03-central", targetWords: ["father", "fun", "car"], targetPhonemes: ["/ɑː/", "/ʌ/"], difficulty: 5, ipa: "/maɪ ˈfɑːðə hæd fʌn ɪn ðə kɑː/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 âm trung tâm" },
+  { sentence: "Tell me about the cup.", soundGroupId: "map-t1-g03-central", targetWords: ["about", "cup"], targetPhonemes: ["/ə/", "/ʌ/"], difficulty: 5, ipa: "/tɛl miː əˈbaʊt ðə kʌp/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "My heart was cold but I had fun.", soundGroupId: "map-t1-g03-central", targetWords: ["heart", "but", "fun"], targetPhonemes: ["/ɑː/", "/ʌ/"], difficulty: 6, ipa: "/maɪ hɑːt wəz koʊld bʌt aɪ hæd fʌn/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -888,7 +892,7 @@ export const WORDS_T1_G05_U_UH: WordItemData[] = [
   { word: "pool", ipa: "/puːl/", soundGroupId: "map-t1-g05-u-uh", targetPhonemes: ["/uː/"], difficulty: 3, exampleSentence: "The pool is clean.", status: "ACTIVE", sourceType: "FREE_API" },
   { word: "look", ipa: "/lʊk/", soundGroupId: "map-t1-g05-u-uh", targetPhonemes: ["/ʊ/"], difficulty: 3, exampleSentence: "Look at the sky.", status: "ACTIVE", sourceType: "FREE_API" },
   { word: "food", ipa: "/fuːd/", soundGroupId: "map-t1-g05-u-uh", targetPhonemes: ["/uː/"], difficulty: 3, exampleSentence: "The food is delicious.", status: "ACTIVE", sourceType: "FREE_API" },
-  { word: "book", ipa: "/bʊk/", soundGroupId: "map-t1-g05-u-uh", targetPhonemes: ["/ʊ/"], difficulty: 3, exampleSentence: "I read a book.", status: "ACTIVE", sourceType: "FREE_API" },
+  { word: "book", ipa: "/buːk/", soundGroupId: "map-t1-g05-u-uh", targetPhonemes: ["/ʊ/"], difficulty: 3, exampleSentence: "I read a book.", status: "ACTIVE", sourceType: "FREE_API" },
   { word: "blue", ipa: "/bluː/", soundGroupId: "map-t1-g05-u-uh", targetPhonemes: ["/uː/"], difficulty: 4, exampleSentence: "The sky is blue.", status: "ACTIVE", sourceType: "FREE_API" },
 ];
 
@@ -900,9 +904,9 @@ export const MINIMAL_PAIRS_T1_G05: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T1_G05: SentenceItemData[] = [
-  { sentence: "The fool pulled the full bucket.", soundGroupId: "map-t1-g05-u-uh", targetWords: ["fool", "pulled", "full"], targetPhonemes: ["/uː/", "/ʊ/", "/ʊ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 âm sau" },
-  { sentence: "Look at the blue pool.", soundGroupId: "map-t1-g05-u-uh", targetWords: ["Look", "blue", "pool"], targetPhonemes: ["/ʊ/", "/uː/", "/uː/"], difficulty: 4, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Good food in the book.", soundGroupId: "map-t1-g05-u-uh", targetWords: ["Good", "food", "book"], targetPhonemes: ["/ʊ/", "/uː/", "/ʊ/"], difficulty: 4, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "The fool pulled the full bucket.", soundGroupId: "map-t1-g05-u-uh", targetWords: ["fool", "pulled", "full"], targetPhonemes: ["/uː/", "/ʊ/", "/ʊ/"], difficulty: 5, ipa: "/ðə fuːl pʊld ðə fʊl ˈbʌkɪt/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 âm sau" },
+  { sentence: "Look at the blue pool.", soundGroupId: "map-t1-g05-u-uh", targetWords: ["Look", "blue", "pool"], targetPhonemes: ["/ʊ/", "/uː/", "/uː/"], difficulty: 4, ipa: "/lʊk æt ðə bluː puːl/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Good food in the book.", soundGroupId: "map-t1-g05-u-uh", targetWords: ["Good", "food", "book"], targetPhonemes: ["/ʊ/", "/uː/", "/ʊ/"], difficulty: 4, ipa: "/ɡʊd fuːd ɪn ðə buːk/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -924,9 +928,9 @@ export const WORDS_T1_G06_ER: WordItemData[] = [
 export const MINIMAL_PAIRS_T1_G06: MinimalPairData[] = [];
 
 export const SENTENCES_T1_G06: SentenceItemData[] = [
-  { sentence: "The nurse learns to work with the bird.", soundGroupId: "map-t1-g06-er", targetWords: ["nurse", "learns", "work", "bird"], targetPhonemes: ["/ɜː/"], difficulty: 6, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Nhiều từ /ɜː/ trong 1 câu" },
-  { sentence: "The girl turned to her word.", soundGroupId: "map-t1-g06-er", targetWords: ["girl", "turned", "her", "word"], targetPhonemes: ["/ɜː/"], difficulty: 6, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Learn to work hard.", soundGroupId: "map-t1-g06-er", targetWords: ["Learn", "work"], targetPhonemes: ["/ɜː/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "The nurse learns to work with the bird.", soundGroupId: "map-t1-g06-er", targetWords: ["nurse", "learns", "work", "bird"], targetPhonemes: ["/ɜː/"], difficulty: 6, ipa: "/ðə nɜːs lɜːnz tuː wɜːk wɪð ðə bɜːd/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Nhiều từ /ɜː/ trong 1 câu" },
+  { sentence: "The girl turned to her word.", soundGroupId: "map-t1-g06-er", targetWords: ["girl", "turned", "her", "word"], targetPhonemes: ["/ɜː/"], difficulty: 6, ipa: "/ðə ɡɜːl tɜːnd tuː hɜː wɜːd/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Learn to work hard.", soundGroupId: "map-t1-g06-er", targetWords: ["Learn", "work"], targetPhonemes: ["/ɜː/"], difficulty: 5, ipa: "/lɜːn tuː wɜːk hɑːd/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -952,9 +956,9 @@ export const MINIMAL_PAIRS_T1_G07: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T1_G07: SentenceItemData[] = [
-  { sentence: "Make my day with your name.", soundGroupId: "map-t1-g07-ei-ai", targetWords: ["Make", "my", "day", "name"], targetPhonemes: ["/eɪ/", "/aɪ/", "/eɪ/", "/eɪ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 diphthong" },
-  { sentence: "They had a good time.", soundGroupId: "map-t1-g07-ei-ai", targetWords: ["They", "time"], targetPhonemes: ["/eɪ/", "/aɪ/"], difficulty: 4, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "My thigh hurts today.", soundGroupId: "map-t1-g07-ei-ai", targetWords: ["My", "thigh"], targetPhonemes: ["/aɪ/", "/aɪ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Make my day with your name.", soundGroupId: "map-t1-g07-ei-ai", targetWords: ["Make", "my", "day", "name"], targetPhonemes: ["/eɪ/", "/aɪ/", "/eɪ/", "/eɪ/"], difficulty: 5, ipa: "/meɪk maɪ deɪ wɪð jɔːr neɪm/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 diphthong" },
+  { sentence: "They had a good time.", soundGroupId: "map-t1-g07-ei-ai", targetWords: ["They", "time"], targetPhonemes: ["/eɪ/", "/aɪ/"], difficulty: 4, ipa: "/ðeɪ hæd ə ɡʊd taɪm/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "My thigh hurts today.", soundGroupId: "map-t1-g07-ei-ai", targetWords: ["My", "thigh"], targetPhonemes: ["/aɪ/", "/aɪ/"], difficulty: 5, ipa: "/maɪ θaɪ hɜːts təˈdeɪ/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -980,9 +984,9 @@ export const MINIMAL_PAIRS_T1_G08: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T1_G08: SentenceItemData[] = [
-  { sentence: "The boy found a coin in the house.", soundGroupId: "map-t1-g08-oi-au", targetWords: ["boy", "coin", "house"], targetPhonemes: ["/ɔɪ/", "/ɔɪ/", "/aʊ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 diphthong" },
-  { sentence: "The mouse ran out of the house.", soundGroupId: "map-t1-g08-oi-au", targetWords: ["mouse", "out", "house"], targetPhonemes: ["/aʊ/", "/aʊ/", "/aʊ/"], difficulty: 4, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Make your choice with your voice.", soundGroupId: "map-t1-g08-oi-au", targetWords: ["choice", "voice"], targetPhonemes: ["/ɔɪ/", "/ɔɪ/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "The boy found a coin in the house.", soundGroupId: "map-t1-g08-oi-au", targetWords: ["boy", "coin", "house"], targetPhonemes: ["/ɔɪ/", "/ɔɪ/", "/aʊ/"], difficulty: 5, ipa: "/ðə bɔɪ faʊnd ə kɔɪn ɪn ðə haʊs/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 diphthong" },
+  { sentence: "The mouse ran out of the house.", soundGroupId: "map-t1-g08-oi-au", targetWords: ["mouse", "out", "house"], targetPhonemes: ["/aʊ/", "/aʊ/", "/aʊ/"], difficulty: 4, ipa: "/ðə maʊs ræn aʊt ɒv ðə haʊs/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Make your choice with your voice.", soundGroupId: "map-t1-g08-oi-au", targetWords: ["choice", "voice"], targetPhonemes: ["/ɔɪ/", "/ɔɪ/"], difficulty: 5, ipa: "/meɪk jɔːr tʃɔɪs wɪð jɔːr vɔɪs/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -1008,9 +1012,9 @@ export const MINIMAL_PAIRS_T1_G09: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T1_G09: SentenceItemData[] = [
-  { sentence: "Go home and take care.", soundGroupId: "map-t1-g09-ou-ea", targetWords: ["Go", "home", "care"], targetPhonemes: ["/əʊ/", "/əʊ/", "/eə/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 diphthong" },
-  { sentence: "I know where he is there.", soundGroupId: "map-t1-g09-ou-ea", targetWords: ["know", "where", "there"], targetPhonemes: ["/əʊ/", "/eə/", "/eə/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Show me the way home.", soundGroupId: "map-t1-g09-ou-ea", targetWords: ["Show", "home"], targetPhonemes: ["/əʊ/", "/əʊ/"], difficulty: 4, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Go home and take care.", soundGroupId: "map-t1-g09-ou-ea", targetWords: ["Go", "home", "care"], targetPhonemes: ["/əʊ/", "/əʊ/", "/eə/"], difficulty: 5, ipa: "/ɡəʊ həʊm ænd teɪk keə/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu chứa cả 2 diphthong" },
+  { sentence: "I know where he is there.", soundGroupId: "map-t1-g09-ou-ea", targetWords: ["know", "where", "there"], targetPhonemes: ["/əʊ/", "/eə/", "/eə/"], difficulty: 5, ipa: "/aɪ nəʊ weər hiː ɪz ðeə/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Show me the way home.", soundGroupId: "map-t1-g09-ou-ea", targetWords: ["Show", "home"], targetPhonemes: ["/əʊ/", "/əʊ/"], difficulty: 4, ipa: "/ʃəʊ miː ðə weɪ həʊm/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -1036,9 +1040,9 @@ export const MINIMAL_PAIRS_T1_G10: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T1_G10: SentenceItemData[] = [
-  { sentence: "Come here near my ear.", soundGroupId: "map-t1-g10-ia-ua", targetWords: ["here", "near", "ear"], targetPhonemes: ["/ɪə/", "/ɪə/", "/ɪə/"], difficulty: 5, status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu nhiều /ɪə/" },
-  { sentence: "The poor man is sure of the tour.", soundGroupId: "map-t1-g10-ia-ua", targetWords: ["poor", "sure", "tour"], targetPhonemes: ["/ʊə/", "/ʊə/", "/ʊə/"], difficulty: 6, status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Don't fear the pure air.", soundGroupId: "map-t1-g10-ia-ua", targetWords: ["fear", "pure"], targetPhonemes: ["/ɪə/", "/ʊə/"], difficulty: 6, status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Come here near my ear.", soundGroupId: "map-t1-g10-ia-ua", targetWords: ["here", "near", "ear"], targetPhonemes: ["/ɪə/", "/ɪə/", "/ɪə/"], difficulty: 5, ipa: "/kʌm hɪər nɪər maɪ ɪə/", status: "ACTIVE", sourceType: "MANUAL", reviewNote: "Câu nhiều /ɪə/" },
+  { sentence: "The poor man is sure of the tour.", soundGroupId: "map-t1-g10-ia-ua", targetWords: ["poor", "sure", "tour"], targetPhonemes: ["/ʊə/", "/ʊə/", "/ʊə/"], difficulty: 6, ipa: "/ðə pʊər mæn ɪz ʃʊər ɒv ðə tʊər/", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Don't fear the pure air.", soundGroupId: "map-t1-g10-ia-ua", targetWords: ["fear", "pure"], targetPhonemes: ["/ɪə/", "/ʊə/"], difficulty: 6, ipa: "/doʊnt fɪər ðə pjʊər eər/", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -1068,10 +1072,10 @@ export const MINIMAL_PAIRS_T2_G01: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T2_G01: SentenceItemData[] = [
-  { sentence: "Pat the big bat.", soundGroupId: "map-t2-g01-p-b", targetWords: ["pat", "bat"], targetPhonemes: ["/p/", "/b/"], difficulty: 3, translation: "Vuốt con dơi lớn.", status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Put the pen in the bin.", soundGroupId: "map-t2-g01-p-b", targetWords: ["pen", "bin"], targetPhonemes: ["/p/", "/b/"], difficulty: 3, translation: "Bỏ bút vào thùng rác.", status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "The cab has a cap.", soundGroupId: "map-t2-g01-p-b", targetWords: ["cab", "cap"], targetPhonemes: ["/b/", "/p/"], difficulty: 4, translation: "Xe taxi có mũ.", status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Pin the rope to the robe.", soundGroupId: "map-t2-g01-p-b", targetWords: ["pin", "rope", "robe"], targetPhonemes: ["/p/", "/b/"], difficulty: 5, translation: "Ghim dây thừng vào áo choàng.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Pat the big bat.", soundGroupId: "map-t2-g01-p-b", targetWords: ["pat", "bat"], targetPhonemes: ["/p/", "/b/"], difficulty: 3, ipa: "/pæt ðə bɪɡ bæt/", translation: "Vuốt con dơi lớn.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Put the pen in the bin.", soundGroupId: "map-t2-g01-p-b", targetWords: ["pen", "bin"], targetPhonemes: ["/p/", "/b/"], difficulty: 3, ipa: "/pʊt ðə pɛn ɪn ðə bɪn/", translation: "Bỏ bút vào thùng rác.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "The cab has a cap.", soundGroupId: "map-t2-g01-p-b", targetWords: ["cab", "cap"], targetPhonemes: ["/b/", "/p/"], difficulty: 4, ipa: "/ðə kæb hæz ə kæp/", translation: "Xe taxi có mũ.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Pin the rope to the robe.", soundGroupId: "map-t2-g01-p-b", targetWords: ["pin", "rope", "robe"], targetPhonemes: ["/p/", "/b/"], difficulty: 5, ipa: "/pɪn ðə roʊp tuː ðə roʊb/", translation: "Ghim dây thừng vào áo choàng.", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -1101,10 +1105,10 @@ export const MINIMAL_PAIRS_T2_G02: MinimalPairData[] = [
 ];
 
 export const SENTENCES_T2_G02: SentenceItemData[] = [
-  { sentence: "Ten dens in the forest.", soundGroupId: "map-t2-g02-t-d", targetWords: ["ten", "dens"], targetPhonemes: ["/t/", "/d/"], difficulty: 4, translation: "Mười cái hang trong rừng.", status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Don't get mad on the mat.", soundGroupId: "map-t2-g02-t-d", targetWords: ["mad", "mat"], targetPhonemes: ["/d/", "/t/"], difficulty: 4, translation: "Đừng tức giận trên thảm.", status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Bet on the bed.", soundGroupId: "map-t2-g02-t-d", targetWords: ["bet", "bed"], targetPhonemes: ["/t/", "/d/"], difficulty: 3, translation: "Cược trên giường.", status: "ACTIVE", sourceType: "MANUAL" },
-  { sentence: "Pay the card on the cart.", soundGroupId: "map-t2-g02-t-d", targetWords: ["card", "cart"], targetPhonemes: ["/d/", "/t/"], difficulty: 5, translation: "Trả thẻ trên xe đẩy.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Ten dens in the forest.", soundGroupId: "map-t2-g02-t-d", targetWords: ["ten", "dens"], targetPhonemes: ["/t/", "/d/"], difficulty: 4, ipa: "/tɛn dɛnz ɪn ðə ˈfɒrɪst/", translation: "Mười cái hang trong rừng.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Don't get mad on the mat.", soundGroupId: "map-t2-g02-t-d", targetWords: ["mad", "mat"], targetPhonemes: ["/d/", "/t/"], difficulty: 4, ipa: "/doʊnt ɡɛt mæd ɒn ðə mæt/", translation: "Đừng tức giận trên thảm.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Bet on the bed.", soundGroupId: "map-t2-g02-t-d", targetWords: ["bet", "bed"], targetPhonemes: ["/t/", "/d/"], difficulty: 3, ipa: "/bɛt ɒn ðə bɛd/", translation: "Cược trên giường.", status: "ACTIVE", sourceType: "MANUAL" },
+  { sentence: "Pay the card on the cart.", soundGroupId: "map-t2-g02-t-d", targetWords: ["card", "cart"], targetPhonemes: ["/d/", "/t/"], difficulty: 5, ipa: "/peɪ ðə kɑːrd ɒn ðə kɑːrt/", translation: "Trả thẻ trên xe đẩy.", status: "ACTIVE", sourceType: "MANUAL" },
 ];
 
 // ============================================================================
@@ -1459,7 +1463,7 @@ export const SENTENCES_T4_G02_WEAK: SentenceItemData[] = [
   { sentence: "She's at the bus stop.", soundGroupId: "map-t4-g02-weak-forms", targetWords: ["at","the"], targetPhonemes: ["/ə/"], difficulty: 5, ipa: "/ʃiz ət ðə ˈbʌs stɑp/", translation: "Cô ấy ở trạm xe buýt.", status: "ACTIVE", sourceType: "MANUAL", weakWords: ["at","the"], acceptedAnswers: ["She's at the bus stop", "She is at the bus stop"], reviewNote: "at→/ət/, the→/ðə/ weak; Mode B accept She's/She is" },
   { sentence: "A cup of tea, please.", soundGroupId: "map-t4-g02-weak-forms", targetWords: ["a","of"], targetPhonemes: ["/ə/"], difficulty: 5, ipa: "/ə ˈkʌp əv ˈti pliz/", translation: "Một tách trà, làm ơn.", status: "ACTIVE", sourceType: "MANUAL", weakWords: ["a","of"], reviewNote: "a→/ə/, of→/əv/ weak" },
   { sentence: "It's for you and me.", soundGroupId: "map-t4-g02-weak-forms", targetWords: ["for","and"], targetPhonemes: ["/ə/"], difficulty: 5, ipa: "/ɪts fər ju ən ˈmi/", translation: "Nó dành cho bạn và tôi.", status: "ACTIVE", sourceType: "MANUAL", weakWords: ["for","and"], acceptedAnswers: ["It's for you and me", "It is for you and me"], reviewNote: "for→/fər/, and→/ən/ weak; Mode B accept It's/It is" },
-  { sentence: "There is a book on the table.", soundGroupId: "map-t4-g02-weak-forms", targetWords: ["is","a","the"], targetPhonemes: ["/ə/"], difficulty: 6, ipa: "/ðɛr ɪz ə ˈbʊk ən ðə ˈtebəl/", translation: "Có một quyển sách trên bàn.", status: "ACTIVE", sourceType: "MANUAL", weakWords: ["is","a","the"], acceptedAnswers: ["There is a book on the table", "There's a book on the table"], reviewNote: "is/a/the weak; Mode B accept There is/There's" },
+  { sentence: "There is a book on the table.", soundGroupId: "map-t4-g02-weak-forms", targetWords: ["is","a","the"], targetPhonemes: ["/ə/"], difficulty: 6, ipa: "/ðɛr ɪz ə ˈbuːk ən ðə ˈteɪbəl/", translation: "Có một quyển sách trên bàn.", status: "ACTIVE", sourceType: "MANUAL", weakWords: ["is","a","the"], acceptedAnswers: ["There is a book on the table", "There's a book on the table"], reviewNote: "is/a/the weak; Mode B accept There is/There's" },
   { sentence: "What are you doing?", soundGroupId: "map-t4-g02-weak-forms", targetWords: ["are"], targetPhonemes: ["/ə/"], difficulty: 5, ipa: "/wʌt ər ju ˈduɪŋ/", translation: "Bạn đang làm gì?", status: "ACTIVE", sourceType: "MANUAL", weakWords: ["are"], reviewNote: "are→/ər/ weak" },
 ];
 
@@ -1483,14 +1487,14 @@ export const SENTENCES_T4_G03_LINKING: SentenceItemData[] = [
 // ============================================================================
 
 export const SENTENCES_T4_G04_ASSIM: SentenceItemData[] = [
-  { sentence: "Did you see it?", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Did","you"], targetPhonemes: [], difficulty: 6, ipa: "/dɪdʒu si ɪt/", translation: "Bạn có thấy nó không?", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "dj→dʒ", assimOriginal: "did you", assimResult: "didʒu", reviewNote: "/d/+/j/→/dʒ/: did you → didja" },
-  { sentence: "Nice to meet you.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["meet","you"], targetPhonemes: [], difficulty: 6, ipa: "/naɪs tə mitʃu/", translation: "Vui được gặp bạn.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "tj→tʃ", assimOriginal: "meet you", assimResult: "mitʃu", reviewNote: "/t/+/j/→/tʃ/: meet you → meetcha" },
-  { sentence: "Would you like tea?", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Would","you"], targetPhonemes: [], difficulty: 6, ipa: "/wʊdʒu laɪk ti/", translation: "Bạn có muốn trà không?", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "dj→dʒ", assimOriginal: "would you", assimResult: "wʊdʒu", reviewNote: "/d/+/j/→/dʒ/: would you → wouldja" },
-  { sentence: "I got your back.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["got","your"], targetPhonemes: [], difficulty: 6, ipa: "/aɪ ɡɑtʃər bæk/", translation: "Tôi ủng hộ bạn.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "tj→tʃ", assimOriginal: "got your", assimResult: "ɡɑtʃər", reviewNote: "/t/+/j/→/tʃ/: got your → gotcha" },
-  { sentence: "Next day, we leave.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Next","day"], targetPhonemes: [], difficulty: 7, ipa: "/nɛks deɪ wi liv/", translation: "Hôm sau, chúng tôi rời đi.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "elision-t", assimOriginal: "next day", assimResult: "nɛks deɪ", reviewNote: "Elision: drop /t/ in 'next' before /d/" },
-  { sentence: "Just you and me.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Just","you"], targetPhonemes: [], difficulty: 6, ipa: "/dʒʌs tʃu ən mi/", translation: "Chỉ bạn và tôi.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "tj→tʃ", assimOriginal: "just you", assimResult: "dʒʌs tʃu", reviewNote: "/t/+/j/→/tʃ/ + elision overlap" },
-  { sentence: "Hand your coat over.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Hand","your"], targetPhonemes: [], difficulty: 7, ipa: "/hændʒər koʊt oʊvər/", translation: "Đưa áo khoác lại đây.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "dj→dʒ", assimOriginal: "hand your", assimResult: "hændʒər", reviewNote: "/d/+/j/→/dʒ/: hand your → handjer" },
-  { sentence: "Last chance, go!", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Last","chance"], targetPhonemes: [], difficulty: 7, ipa: "/læs tʃæns ɡoʊ/", translation: "Cơ hội cuối, đi đi!", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "elision-t", assimOriginal: "last chance", assimResult: "læs tʃæns", reviewNote: "Elision: drop /t/ in 'last' before /tʃ/" },
+  { sentence: "Did you see it?", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Did","you"], targetPhonemes: [], difficulty: 6, ipa: "/dɪdʒu si ɪt/", translation: "Bạn có thấy nó không?", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "dj→dʒ", assimOriginal: "/dɪd ju/", assimResult: "/dɪdʒu/", reviewNote: "/d/+/j/→/dʒ/: did you → didja" },
+  { sentence: "Nice to meet you.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["meet","you"], targetPhonemes: [], difficulty: 6, ipa: "/naɪs tə mitʃu/", translation: "Vui được gặp bạn.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "tj→tʃ", assimOriginal: "/mit ju/", assimResult: "/mitʃu/", reviewNote: "/t/+/j/→/tʃ/: meet you → meetcha" },
+  { sentence: "Would you like tea?", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Would","you"], targetPhonemes: [], difficulty: 6, ipa: "/wʊdʒu laɪk ti/", translation: "Bạn có muốn trà không?", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "dj→dʒ", assimOriginal: "/wʊd ju/", assimResult: "/wʊdʒu/", reviewNote: "/d/+/j/→/dʒ/: would you → wouldja" },
+  { sentence: "I got your back.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["got","your"], targetPhonemes: [], difficulty: 6, ipa: "/aɪ ɡɑtʃər bæk/", translation: "Tôi ủng hộ bạn.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "tj→tʃ", assimOriginal: "/ɡɑt jɔr/", assimResult: "/ɡɑtʃər/", reviewNote: "/t/+/j/→/tʃ/: got your → gotcha" },
+  { sentence: "Next day, we leave.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Next","day"], targetPhonemes: [], difficulty: 7, ipa: "/nɛks deɪ wi liv/", translation: "Hôm sau, chúng tôi rời đi.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "elision-t", assimOriginal: "/nɛkst deɪ/", assimResult: "/nɛks deɪ/", reviewNote: "Elision: drop /t/ in 'next' before /d/" },
+  { sentence: "Just you and me.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Just","you"], targetPhonemes: [], difficulty: 6, ipa: "/dʒʌs tʃu ən mi/", translation: "Chỉ bạn và tôi.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "tj→tʃ", assimOriginal: "/dʒʌst ju/", assimResult: "/dʒʌs tʃu/", reviewNote: "/t/+/j/→/tʃ/ + elision overlap" },
+  { sentence: "Hand your coat over.", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Hand","your"], targetPhonemes: [], difficulty: 7, ipa: "/hændʒər koʊt oʊvər/", translation: "Đưa áo khoác lại đây.", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "dj→dʒ", assimOriginal: "/hænd jɔr/", assimResult: "/hændʒər/", reviewNote: "/d/+/j/→/dʒ/: hand your → handjer" },
+  { sentence: "Last chance, go!", soundGroupId: "map-t4-g04-assimilation", targetWords: ["Last","chance"], targetPhonemes: [], difficulty: 7, ipa: "/læs tʃæns ɡoʊ/", translation: "Cơ hội cuối, đi đi!", status: "ACTIVE", sourceType: "MANUAL", assimilationType: "elision-t", assimOriginal: "/læst tʃæns/", assimResult: "/læs tʃæns/", reviewNote: "Elision: drop /t/ in 'last' before /tʃ/" },
 ];
 
 // ============================================================================
@@ -2164,4 +2168,4 @@ console.log(`   - ${Object.keys(LESSON_CONTENT_BY_SOUND_GROUP).length} Sound Gro
 console.log(`   - ${totalWords} Words`);
 console.log(`   - ${totalPairs} Minimal Pairs`);
 console.log(`   - ${totalSentences} Sentences`);
-console.log(`   - MVP ready: 20 lessons (5 groups × 4 modes)`);
+console.log(`   - 38 Sound Groups ready (30 original + 8 animal supplements)`);

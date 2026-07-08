@@ -125,36 +125,81 @@ export default function ExerciseSummaryScreen({
   const animatedRanking = useCountUp(submitResult.rewards.totalRankingDelta, { durationMs: 1200 });
   const animatedGems = useCountUp(submitResult.rewards.gemsEarned, { durationMs: 900 });
 
+  // Exercise type display name (extract from ID like "ex-map-t1-g01-i-ih-listen_choose" → "listen_choose").
+  const exerciseType = exercise.id.split("-").pop() ?? "";
+  const exerciseTypeDisplay: Record<string, string> = {
+    listen_choose: "Luyện nghe chọn đáp án",
+    speak_word: "Luyện nói từ",
+    speak_sentence: "Luyện nói câu",
+    speak_minimal_pairs: "Phân biệt cặp tối thiểu",
+    choose_linking: "Liên kết âm",
+    choose_assimilation: "Hòa assimilation",
+    choose_weak: "Dạng yếu",
+    tap_stress: "Nhấn âm tiết",
+  };
+  const typeName = exerciseTypeDisplay[exerciseType] ?? exerciseType;
+
+  // Correct count for quantitative summary.
+  const correctCount = submitResult.exerciseScore === 0
+    ? 0
+    : Math.round((submitResult.exerciseScore / 100) * exercise.questions.length);
+  const totalQuestions = exercise.questions.length;
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-neutral-50 p-6 sm:p-8">
-      <Card className="w-full max-w-2xl space-y-8 p-8 text-center sm:p-12">
-        {/* ===== TẦNG 1 (top): khen + vòng tròn % ===== */}
-        <h1 className="text-3xl font-black text-neutral-900">{praise}</h1>
+      <Card className="w-full max-w-2xl space-y-8 rounded-3xl border-0 bg-gradient-to-b from-white via-white to-primary-50/60 p-8 text-center shadow-2xl shadow-primary-900/10 sm:p-12">
+        {/* ===== HEADER: tên bài + dạng bài ===== */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black text-neutral-900">{exercise.name}</h1>
+          <p className="text-base font-bold text-primary-600">{typeName}</p>
+          <div className="mx-auto mt-2 h-px w-24 bg-primary-300" aria-hidden="true" />
+        </div>
 
-        {/* Vòng tròn % CSS conic-gradient (không lib). */}
-        <div
-          className="mx-auto flex h-40 w-40 items-center justify-center rounded-full text-4xl font-black text-neutral-900"
-          style={{
-            background: `conic-gradient(${ringColor} ${score}%, #e5e7eb 0)`,
-          }}
-          role="img"
-          aria-label={`Điểm ${score} trên 100 — ${starsDisplay.label}`}
-        >
-          <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full bg-white">
-            <span className="text-4xl font-black" style={{ color: ringColor }}>
-              {score}%
-            </span>
-            {/* 🌟 Stars display (Micro level — rule 60-80-90) */}
-            <span
-              className={`mt-1 text-xl leading-none ${starsDisplay.colorClass}`}
-              aria-label={starsDisplay.label}
-            >
-              {starsDisplay.emoji}
-            </span>
-            <span className="mt-0.5 text-xs font-bold text-slate-700">
-              {starsDisplay.label}
-            </span>
+        {/* ===== TẦNG 1 (top): vòng tròn % + quant summary ===== */}
+        <div className="space-y-3">
+          {/* Vòng tròn % CSS conic-gradient (không lib). */}
+          <div
+            className="mx-auto flex h-44 w-44 items-center justify-center rounded-full text-4xl font-black text-neutral-900 shadow-lg"
+            style={{
+              background: `conic-gradient(${ringColor} ${score}%, #e5e7eb 0)`,
+            }}
+            role="img"
+            aria-label={`Điểm ${score} trên 100 — ${starsDisplay.label}`}
+          >
+            <div className="flex h-36 w-36 flex-col items-center justify-center rounded-full bg-white shadow-inner">
+              <span className="text-5xl font-black" style={{ color: ringColor }}>
+                {score}%
+              </span>
+              {/* 🌟 Stars display (Micro level — rule 60-80-90) */}
+              <span
+                className={`mt-1 text-2xl leading-none ${starsDisplay.colorClass}`}
+                aria-label={starsDisplay.label}
+              >
+                {starsDisplay.emoji}
+              </span>
+              <span className="mt-0.5 text-xs font-bold text-slate-700">
+                {starsDisplay.label}
+              </span>
+            </div>
           </div>
+          {/* Quantitative summary: "Đúng X/Y câu" */}
+          <p className="text-xl font-black text-neutral-800">
+            Đúng <span className="text-success-600">{correctCount}</span>/{totalQuestions} câu
+          </p>
+          {/* Progress bias — ngay hàng Đúng X/Y câu */}
+          {progressBias !== null && (
+            <div className="rounded-lg bg-neutral-100 px-4 py-2 text-sm font-bold">
+              {progressBias > 0 && (
+                <p className="text-success-700">Tốt hơn {progressBias}% so với lần trước!</p>
+              )}
+              {progressBias === 0 && <p className="text-neutral-600">Cùng điểm lần trước.</p>}
+              {progressBias < 0 && (
+                <p className="text-warning-700">
+                  Thấp hơn {-progressBias}% so với lần trước — cố gắng nhé!
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ===== TẦNG 2 (middle): EXP + streak + badges + progress bias ===== */}
@@ -177,13 +222,16 @@ export default function ExerciseSummaryScreen({
             {/* Reward grid: EXP / Điểm hạng / Diamonds */}
             <div className="grid grid-cols-3 gap-3">
               {/* EXP */}
-              <div className="rounded-lg bg-primary-50 p-4 text-primary-700">
+              <div className="rounded-xl border border-primary-200 bg-primary-100 p-4 text-primary-700 shadow-sm">
                 <p className="text-sm font-semibold">⭐ EXP</p>
                 <p className="text-2xl font-black tabular-nums">+{animatedXp.toLocaleString()}</p>
+                {submitResult.rewards.xpBoostActive && (
+                  <p className="mt-1 text-xs font-bold text-amber-600">🔥 x1.5 Sách Thần</p>
+                )}
               </div>
 
               {/* Điểm hạng 🏆 */}
-              <div className="rounded-lg bg-amber-50 p-4 text-amber-700">
+              <div className="rounded-xl border border-amber-200 bg-amber-100 p-4 text-amber-700 shadow-sm">
                 <p className="text-sm font-semibold">🏆 Điểm hạng</p>
                 <p className="text-2xl font-black tabular-nums">+{animatedRanking.toLocaleString()}</p>
                 {submitResult.rewards.dailyBonusRanking > 0 && (
@@ -194,16 +242,11 @@ export default function ExerciseSummaryScreen({
               </div>
 
               {/* Diamonds 💎 */}
-              <div className="rounded-lg bg-purple-50 p-4 text-purple-700">
+              <div className="rounded-xl border border-purple-200 bg-purple-100 p-4 text-purple-700 shadow-sm">
                 <p className="text-sm font-semibold">💎 Diamonds</p>
                 <p className="text-2xl font-black tabular-nums">+{animatedGems.toLocaleString()}</p>
               </div>
             </div>
-
-            {/* Context: giải thích ranking reset (Task 3.1) */}
-            <p className="text-sm font-semibold text-amber-600">
-              🏆 Điểm hạng xếp theo tuần/tháng — cạnh tranh trên bảng xếp hạng!
-            </p>
 
             {/* Task 6.1: share thành tích khi high score (Nielsen H7 — flexibility) */}
             {isHighScore && (
@@ -217,27 +260,17 @@ export default function ExerciseSummaryScreen({
               </div>
             )}
 
-            {/* Progress bias — chỉ hiện nếu previousBestScore !== null */}
-            {progressBias !== null && (
-              <div className="text-sm font-bold">
-                {progressBias > 0 && (
-                  <p className="text-success-700">Tốt hơn {progressBias}% so với lần trước!</p>
-                )}
-                {progressBias === 0 && <p className="text-neutral-600">Cùng điểm lần trước.</p>}
-                {progressBias < 0 && (
-                  <p className="text-warning-700">
-                    Thấp hơn {-progressBias}% so với lần trước — cố gắng nhé!
-                  </p>
-                )}
-              </div>
-            )}
-
             {/* Level + EXP hiện tại */}
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm font-semibold text-neutral-700">
               Level hiện tại:{" "}
-              <span className="font-bold text-neutral-900">{submitResult.progress.level}</span> — EXP:{" "}
-              <span className="font-bold text-neutral-900">{submitResult.progress.currentXp}</span>
+              <span className="font-black text-neutral-900">{submitResult.progress.level}</span> — EXP:{" "}
+              <span className="font-black text-neutral-900">{submitResult.progress.currentXp}</span>
             </p>
+            {submitResult.rewards.xpBoostActive && submitResult.rewards.xpBoostRemaining !== undefined && (
+              <p className="text-xs font-bold text-amber-600">
+                🔥 Còn {submitResult.rewards.xpBoostRemaining} lần x1.5 EXP
+              </p>
+            )}
           </div>
         )}
 
@@ -249,15 +282,15 @@ export default function ExerciseSummaryScreen({
 
         {/* ===== TẦNG 3 (bottom): lỗi + nghe lại + 2 nút ===== */}
         {incorrectQuestions.length > 0 && (
-          <div className="rounded-xl border border-error-200 bg-error-50 p-6 text-left">
+          <div className="rounded-2xl border-2 border-error-200 bg-error-100/60 p-6 text-left shadow-sm">
             <h2 className="mb-4 text-lg font-bold text-error-800">Cần chú ý</h2>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {incorrectQuestions.map((item, index) => {
                 const audioUrl = parseWordPrompt(item.question.content).audioUrl;
                 return (
                   <li
                     key={`${item.question.id}-${index}`}
-                    className="rounded-lg border border-error-100 bg-white p-4"
+                    className="rounded-xl border border-error-200 bg-white p-4 shadow-sm"
                   >
                     <p className="font-bold text-neutral-900">"{formatQuestionWord(item.question)}"</p>
                     <p className="mt-1 text-sm text-neutral-600">

@@ -38,7 +38,7 @@ function parseTapStress(content: string): TapStressContent {
  *
  * Thiết kế 2026-06-26: chuyển từ "tap vào âm tiết" → "trắc nghiệm chọn Âm tiết 1/2/3".
  * - Hiển thị word + IPA + audio replay
- * - Render syllable breakdown làm context (không phải đáp án)
+ * - Nút trắc nghiệm hiển thị "Âm tiết 1", "Âm tiết 2"... (syllable breakdown đã bị xóa theo yêu cầu)
  * - Nút trắc nghiệm hiển thị "Âm tiết 1", "Âm tiết 2"...
  * - Scoring: option.id được so với question.answer (stressIndex 0-based) — KHÔNG đổi
  *
@@ -97,7 +97,8 @@ export default function TapStressQuestion({
       {/* ═══ 1. Word + IPA + audio replay ═══ */}
       <div className="flex flex-col items-center gap-4">
         <h2 className="text-4xl font-bold text-neutral-900 sm:text-5xl">{data.word}</h2>
-        {data.ipa && <p className="font-ipa text-2xl text-neutral-600">{data.ipa}</p>}
+        {/* IPA chỉ hiện sau khi chọn đáp án */}
+        {isAnswered && data.ipa && <p className="font-ipa text-2xl text-neutral-600">{data.ipa}</p>}
         <button
           type="button"
           onClick={replay}
@@ -108,37 +109,12 @@ export default function TapStressQuestion({
         </button>
       </div>
 
-      {/* ═══ 2. Syllable breakdown (visual context, không phải đáp án) ═══ */}
-      {data.syllables.length > 0 && (
-        <div className="mx-auto max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
-            Phân tách âm tiết
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {data.syllables.map((s, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-base font-bold text-neutral-700"
-              >
-                <span
-                  className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-xs font-bold text-neutral-600"
-                  aria-hidden
-                >
-                  {i + 1}
-                </span>
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ═══ 3. Multiple choice — "Chọn âm tiết được nhấn" ═══ */}
+      {/* ═══ 2. Multiple choice — "Chọn âm tiết được nhấn" ═══ */}
       <div>
         <p className="mb-4 text-base font-semibold text-neutral-700">
           Âm tiết nào được nhấn?
         </p>
-        <div className="mx-auto grid max-w-md grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="mx-auto flex flex-wrap justify-center gap-3 max-w-md">
           {options.map((option, idx) => {
             const isCorrectOpt = idx === correctIdx;
             const isSelected = isSelectedById(option.id);
@@ -146,16 +122,13 @@ export default function TapStressQuestion({
 
             let cls =
               "border-neutral-200 bg-white text-neutral-800 hover:border-primary-400 hover:bg-primary-50";
-            let statusIcon = "";
 
             if (isAnswered) {
               if (isCorrectOpt) {
                 cls =
                   "border-success-500 bg-success-50 text-success-700 ring-4 ring-success-100";
-                statusIcon = "✓";
               } else if (isSelected) {
                 cls = "border-error-500 bg-error-50 text-error-700 animate-shake";
-                statusIcon = "✗";
               } else {
                 cls = "border-neutral-200 bg-neutral-50 text-neutral-400";
               }
@@ -174,20 +147,12 @@ export default function TapStressQuestion({
                 aria-pressed={isSelected}
                 aria-label={
                   isAnswered
-                    ? `Âm tiết ${idx + 1} — ${statusIcon === "✓" ? "Đúng" : statusIcon === "✗" ? "Sai" : ""}`
+                    ? `Âm tiết ${idx + 1} — ${isCorrectOpt ? "Đúng" : isSelected ? "Sai" : ""}`
                     : `Chọn âm tiết ${idx + 1}`
                 }
-                className={`relative inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-base font-bold transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-300 disabled:cursor-not-allowed ${cls}`}
+                className={`relative inline-flex min-h-14 min-w-[140px] items-center justify-center rounded-xl border-2 px-4 py-3 text-base font-bold transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-300 disabled:cursor-not-allowed ${cls}`}
               >
-                <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-sm font-black text-neutral-600">
-                  {idx + 1}
-                </span>
                 <span>Âm tiết {idx + 1}</span>
-                {statusIcon && (
-                  <span className="ml-1 text-base" aria-hidden="true">
-                    {statusIcon}
-                  </span>
-                )}
               </button>
             );
           })}

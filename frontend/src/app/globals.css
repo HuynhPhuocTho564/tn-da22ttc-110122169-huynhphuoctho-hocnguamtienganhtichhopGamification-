@@ -164,6 +164,10 @@ body {
   background: linear-gradient(180deg, #dbeafe 0%, #fef3c7 50%, #fce7f3 100%);
   background-attachment: fixed;
   color: #111827;
+  /* Disable browser scroll-anchoring: prevents page from auto-scrolling down
+     when new content (e.g. HorizontalTabs above main) appears below current
+     scroll position. Without this, selecting a map island scrolls user to bottom. */
+  overflow-anchor: none;
 }
 
 /* Animation for blob */
@@ -345,7 +349,7 @@ body {
   0% { transform: translateY(100%); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
-.animate-slide-up-panel { animation: slide-up-panel 0.4s ease-out; }
+.animate-slide-up-panel { animation: slide-up-panel 0.4s ease-out; overflow-anchor: none; }
 
 /* Fade-in for overlays */
 @keyframes fade-in {
@@ -366,6 +370,24 @@ body {
 @keyframes cloud-float {
   0% { transform: translateX(-10%); }
   100% { transform: translateX(110%); }
+}
+
+/* === Animal floating animations (island decorations) === */
+@keyframes animal-float {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-6px); }
+}
+
+@keyframes animal-swim {
+  0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+  25% { transform: translate(-50%, -50%) translateX(5px) translateY(-3px); }
+  75% { transform: translate(-50%, -50%) translateX(-5px) translateY(3px); }
+}
+
+@keyframes animal-fly {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) translateY(-8px) rotate(3deg); }
+  75% { transform: translate(-50%, -50%) translateY(-4px) rotate(-3deg); }
 }
 
 /* === Focus Mode RPG Neon Glow (Ocean Blue) === */

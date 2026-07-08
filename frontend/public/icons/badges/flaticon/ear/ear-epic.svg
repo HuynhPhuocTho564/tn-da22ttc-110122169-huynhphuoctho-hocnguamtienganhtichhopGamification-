@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="earGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
+    </linearGradient>
+  </defs>
+  <path d="M40 16c6 0 10 4 10 10s-4 10-10 10h-4v12h-8V20c0-6 6-4 12-4z" fill="url(#earGrad)"/>
+  <path d="M28 20v28" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="40" cy="26" r="4" fill="#fef3c7"/>
+  <path d="M36 22c2-2 6-2 8 0" stroke="#fef3c7" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="40" cy="26" r="14" fill="none" stroke="#fbbf24" stroke-width="1" opacity="0.4"/>
+</svg>

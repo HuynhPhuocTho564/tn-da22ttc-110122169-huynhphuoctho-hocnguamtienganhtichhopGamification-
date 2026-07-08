@@ -62,7 +62,7 @@ export default function LoginForm({ googleEnabled }: LoginFormProps) {
 
  router.push(callbackUrl);
  router.refresh();
- } catch (loginError) {
+  } catch {
  setError("Đã xảy ra lỗi, vui lòng thử lại.");
  } finally {
  setIsLoading(false);

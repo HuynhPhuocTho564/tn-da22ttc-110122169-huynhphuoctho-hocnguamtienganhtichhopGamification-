@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import { TabButton } from "@/components/ui/TabButton";
 import { SHOP_ITEMS, type ShopCategory } from "@/lib/gamification";
 import { playSfx } from "@/lib/sfx";
+import { useRewardEvents } from "@/components/gamification/effects/RewardEventContext";
 
 /** Category-based card styles */
 const CATEGORY_STYLES: Record<string, { bg: string; border: string }> = {
@@ -22,10 +24,10 @@ const SHOP_SVG_MAP: Record<string, string> = {
   hint_token: "hint-token",
   streak_freeze: "streak-freeze",
   second_chance: "second-chance",
+  frame_silver: "frame-silver",
   frame_gold: "frame-gold",
+  frame_diamond: "frame-diamond",
   frame_fire: "frame-fire",
-  title_scholar: "title-scholar",
-  title_champion: "crown",
 };
 
 /**
@@ -42,11 +44,16 @@ const CATEGORIES: Array<{ id: ShopCategory | "all"; label: string }> = [
   { id: "cosmetic", label: "✨ Trang trí" },
 ];
 
-// Item đã có backend effect (mua thật). Item khác chỉ "sắp ra mắt".
+// All items are implemented — read from DB ShopItem table.
 const IMPLEMENTED_ITEMS = new Set([
   "streak_freeze", "ipa_reveal", "slow_audio",
   "xp_boost", "hint_token", "second_chance",
-  "frame_gold", "frame_fire", "title_scholar", "title_champion",
+  "frame_silver", "frame_gold", "frame_diamond", "frame_fire",
+]);
+
+/** Items that can be purchased multiple times (consumables) */
+const REPEATABLE_ITEMS = new Set([
+  "streak_freeze", "xp_boost", "hint_token", "second_chance",
 ]);
 
 type PurchaseResult = {
@@ -61,22 +68,31 @@ type PurchaseResult = {
 
 type ShopPageClientProps = {
   initialGems: number;
+  purchasedItemIds?: string[];
 };
 
-export default function ShopPageClient({ initialGems }: ShopPageClientProps) {
+export default function ShopPageClient({ initialGems, purchasedItemIds = [] }: ShopPageClientProps) {
   const [gems, setGems] = useState(initialGems);
+  const [purchased, setPurchased] = useState<Set<string>>(new Set(purchasedItemIds));
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<ShopCategory | "all">("all");
+  const [confirmModal, setConfirmModal] = useState<{
+    itemId: string;
+    itemName: string;
+    cost: number;
+  } | null>(null);
+  const { emit } = useRewardEvents();
 
-  async function handlePurchase(itemId: string, itemName: string, cost: number) {
-    const confirmed = window.confirm(
-      `Mua "${itemName}" với ${cost} 💎?\nSố dư hiện tại: ${gems} 💎`,
-    );
-    if (!confirmed) return;
+  function openConfirmModal(itemId: string, itemName: string, cost: number) {
+    setConfirmModal({ itemId, itemName, cost });
+  }
 
+  async function confirmPurchase() {
+    if (!confirmModal) return;
+    const { itemId, itemName, cost } = confirmModal;
+
+    setConfirmModal(null);
     setPurchasingId(itemId);
-    setMessage(null);
 
     try {
       const response = await fetch("/api/shop", {
@@ -88,14 +104,19 @@ export default function ShopPageClient({ initialGems }: ShopPageClientProps) {
 
       if (body.success && body.data) {
         setGems(body.data.user.gems);
-        setMessage(`Đã mua "${body.data.item.name}" thành công!`);
+        // Only add to purchased set if NOT repeatable (consumables can be bought again)
+        if (!REPEATABLE_ITEMS.has(itemId)) {
+          setPurchased((prev) => new Set([...prev, itemId]));
+        }
+        // Emit toast notification
+        emit({ type: "purchase", label: `Đã mua "${body.data.item.name}" thành công!` });
         // Fire-and-forget SFX cho purchase thành công (Chunk C1)
         playSfx("correct");
       } else {
-        setMessage(body.error?.message ?? "Mua hàng thất bại.");
+        emit({ type: "purchase", label: body.error?.message ?? "Mua hàng thất bại." });
       }
     } catch {
-      setMessage("Không thể kết nối server.");
+      emit({ type: "purchase", label: "Không thể kết nối server." });
     } finally {
       setPurchasingId(null);
     }
@@ -107,7 +128,7 @@ export default function ShopPageClient({ initialGems }: ShopPageClientProps) {
       : SHOP_ITEMS.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <main className="mx-auto max-w-4xl">
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-4xl font-bold text-neutral-900">🛍️ Cửa hàng Đá quý</h1>
@@ -151,6 +172,9 @@ export default function ShopPageClient({ initialGems }: ShopPageClientProps) {
           {filteredItems.map((item) => {
             const canAfford = gems >= item.cost;
             const isImplemented = IMPLEMENTED_ITEMS.has(item.id);
+            const isOwned = purchased.has(item.id);
+            const isRepeatable = REPEATABLE_ITEMS.has(item.id);
+            const canBuy = isRepeatable ? canAfford && isImplemented : !isOwned && canAfford && isImplemented;
             const svgName = SHOP_SVG_MAP[item.id];
             const svgPath = svgName ? `/icons/shop/colored/${svgName}.svg` : null;
             const catStyle = CATEGORY_STYLES[item.category] ?? CATEGORY_STYLES.power_up;
@@ -186,11 +210,11 @@ export default function ShopPageClient({ initialGems }: ShopPageClientProps) {
                   </div>
                 </div>
                 <Button
-                  variant="primary"
+                  variant={isOwned && !isRepeatable ? "ghost" : "primary"}
                   size="sm"
-                  disabled={!canAfford || !isImplemented || purchasingId === item.id}
+                  disabled={!canBuy || purchasingId === item.id}
                   loading={purchasingId === item.id}
-                  onClick={() => handlePurchase(item.id, item.name, item.cost)}
+                  onClick={() => openConfirmModal(item.id, item.name, item.cost)}
                   className="shrink-0"
                 >
                   {!isImplemented ? "Sắp ra mắt" : canAfford ? "Mua" : "Không đủ"}
@@ -199,15 +223,21 @@ export default function ShopPageClient({ initialGems }: ShopPageClientProps) {
             );
           })}
         </div>
-
-        {message && (
-          <div role="status" aria-live="polite">
-            <Card className="mt-6 border-primary-200 bg-primary-50">
-              <p className="text-sm text-neutral-700">{message}</p>
-            </Card>
-          </div>
-        )}
       </main>
+
+      <ConfirmModal
+        isOpen={confirmModal !== null}
+        onClose={() => setConfirmModal(null)}
+        onConfirm={confirmPurchase}
+        title="Xác nhận mua hàng"
+        message={
+          confirmModal
+            ? `Mua "${confirmModal.itemName}" với ${confirmModal.cost} 💎?\nSố dư hiện tại: ${gems} 💎`
+            : ""
+        }
+        confirmLabel="Mua"
+        loading={purchasingId !== null}
+      />
     </div>
   );
 }

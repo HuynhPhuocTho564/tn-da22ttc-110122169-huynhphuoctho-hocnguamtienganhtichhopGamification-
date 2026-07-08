@@ -64,6 +64,7 @@ export type WordPrompt = {
   // v2 listen_choose 3-stage (phoneme identification):
   answerType?: "phoneme";
   stage?: 1 | 2 | 3;
+  showIpa?: boolean;
   targetPhoneme?: string;
   contrastPhonemes?: string[];
   skeleton?: string | null;
@@ -97,13 +98,15 @@ export type SubmitResult = {
     gemsEarned: number;
     questXpEarned: number;
     questGemsEarned: number;
+    xpBoostActive?: boolean;
+    xpBoostRemaining?: number;
   };
   progress: {
     currentXp: number;
     level: number;
     nextLevelXp: number;
   };
-  badgesAwarded: Array<{ id: string; name: string; type: string }>;
+  badgesAwarded: Array<{ id: string; name: string; rarity: string }>;
   previousBestScore: number | null;
   streak: {
     count: number;

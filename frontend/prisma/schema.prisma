@@ -62,6 +62,7 @@ model User {
   userBadges       UserBadge[]
   leaderboards     Leaderboard[]
   dailyQuests      DailyQuest[]
+  mainQuestProgresses MainQuestProgress[]
   userMilestones   UserMilestone[]
   challengeParticipants WeeklyChallengeParticipant[]
   spinWheelLogs    SpinWheelLog[]
@@ -96,6 +97,12 @@ model LearningMap {
   requirement String? // YeuCauBanDo
   status      String  @default("ACTIVE") // TrangThaiBanDo
   subcategory String? // v2: nhóm con trong topic (inherit từ SoundGroup khi seed). null = không phân nhóm.
+
+  // v2: Map unlock chain — self-referential FK
+  requiredMapId           String?  // FK to another LearningMap (prerequisite)
+  unlockThresholdPercent  Int      @default(0) // Required completion % to unlock
+  requiredMap             LearningMap? @relation("MapUnlockChain", fields: [requiredMapId], references: [id], onDelete: SetNull)
+  requiredByMaps          LearningMap[] @relation("MapUnlockChain")
 
   exercises  Exercise[]
   progresses Progress[]
@@ -134,6 +141,22 @@ model DailyQuest {
 
   @@unique([userId, date, questType])
   @@index([userId, date])
+}
+
+model MainQuestProgress {
+  id         String   @id @default(uuid())
+  userId     String
+  questType  String   // "main-island" | "main-phoneme-group" | "main-level-up"
+  targetId   String   // topicId, mapId, hoặc "level-N"
+  targetName String
+  completed  Boolean  @default(false)
+  claimedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questType, targetId])
+  @@index([userId, questType])
 }
 
 model Progress {
@@ -587,6 +610,20 @@ model SpinWheelLog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, spunAt])
+}
+
+/// Shop item catalog — managed by admin, used by purchase API.
+model ShopItem {
+  id          String   @id @default(uuid())
+  key         String   @unique // "streak_freeze" | "xp_boost" | etc.
+  name        String
+  description String
+  cost        Int
+  category    String   @default("power_up") // "power_up" | "protection" | "cosmetic"
+  sortOrder   Int      @default(0)
+  status      String   @default("ACTIVE") // "ACTIVE" | "DRAFT" | "ARCHIVED"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 /// Cosmetic items owned by users (avatar frames, titles).

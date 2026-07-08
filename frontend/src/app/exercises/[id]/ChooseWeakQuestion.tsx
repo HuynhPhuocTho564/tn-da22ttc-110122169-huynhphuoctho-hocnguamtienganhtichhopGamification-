@@ -114,24 +114,26 @@ export default function ChooseWeakQuestion({
         >
           🎧 {isPlaying ? "Đang phát..." : "Nghe câu"}
         </button>
-        {data.ipa && <p className="font-ipa text-xl text-neutral-600">{data.ipa}</p>}
+        {isAnswered && data.ipa && <p className="font-ipa text-xl text-neutral-600">{data.ipa}</p>}
       </div>
 
       <div>
-        <p className="mb-6 text-lg font-medium text-neutral-600">Chọn từ đọc lướt (weak /ə/)</p>
+        <p className="mb-6 text-lg font-medium text-neutral-600">
+          Chọn từ đọc lướt (weak /ə/)
+          {data.weakWords.length > 1 && (
+            <span className="ml-2 text-sm font-normal text-neutral-400">— có thể nhiều đáp án</span>
+          )}
+        </p>
         <div className="flex flex-wrap justify-center gap-3">
           {options.map((option) => {
             const isSelected = selected.has(option.id);
             const isCorrectOpt = expectedSet.has(normalizeAnswer(option.content));
             let cls = "border-neutral-200 bg-white text-neutral-800 hover:border-primary-300";
-            let statusIcon = "";
             if (isAnswered) {
               if (isCorrectOpt) {
                 cls = "border-success-500 bg-success-50 text-success-700 ring-4 ring-success-100";
-                statusIcon = "✓";
               } else if (isSelected) {
                 cls = "border-error-500 bg-error-50 text-error-700";
-                statusIcon = "✗";
               } else {
                 cls = "border-neutral-200 bg-neutral-50 text-neutral-400";
               }
@@ -145,11 +147,10 @@ export default function ChooseWeakQuestion({
                 onClick={() => toggle(option.id)}
                 disabled={isAnswered}
                 aria-pressed={isSelected}
-                aria-label={isAnswered ? `${option.content} — ${statusIcon === "✓" ? "Đúng" : statusIcon === "✗" ? "Sai" : ""}` : option.content}
+                aria-label={isAnswered ? `${option.content} — ${isCorrectOpt ? "Đúng" : isSelected ? "Sai" : ""}` : option.content}
                 className={`min-h-11 rounded-lg border-4 px-4 py-2 text-base font-bold transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 ${cls}`}
               >
                 {option.content}
-                {statusIcon && <span className="ml-1" aria-hidden="true">{statusIcon}</span>}
               </button>
             );
           })}

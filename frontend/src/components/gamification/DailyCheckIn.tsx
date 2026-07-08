@@ -75,7 +75,7 @@ export default function DailyCheckIn({
     todayReward: DEFAULT_REWARD,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function DailyCheckIn({
         if (!cancelled && !body.success) {
           setMessage(body.error?.message ?? "Không lấy được trạng thái điểm danh.");
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
           setMessage("Không thể kết nối API điểm danh.");
         }
@@ -114,70 +114,6 @@ export default function DailyCheckIn({
       cancelled = true;
     };
   }, [onStatusLoaded]);
-
-  async function handleCheckIn() {
-    setIsSubmitting(true);
-    setMessage(null);
-
-    try {
-      const response = await fetch("/api/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const body = (await response.json()) as ApiResponse<
-        CheckInStatus & {
-          reward: {
-            xp: number;
-            rankingScore: number;
-          };
-          badgesAwarded: Array<{
-            id: string;
-            name: string;
-            type: string;
-          }>;
-        }
-      >;
-
-      if (body.success) {
-        const nextStatus: CheckInStatus = {
-          currentStreak: body.data.currentStreak,
-          longestStreak: body.data.longestStreak,
-          totalCheckIns: body.data.totalCheckIns,
-          lastCheckInDate: body.data.lastCheckInDate,
-          canCheckIn: false,
-          todayReward: body.data.reward,
-        };
-
-        setStatus(nextStatus);
-        setMessage(
-          body.data.badgesAwarded.length > 0
-            ? `Đã điểm danh và nhận ${body.data.badgesAwarded.length} huy hiệu mới.`
-            : "Đã điểm danh thành công.",
-        );
-        // Fire-and-forget SFX cho check-in thành công (Chunk C1)
-        playSfx("correct");
-        // Streak milestone confetti (Chunk C7) — chỉ bắn khi đạt mốc 3/7/14 ngày.
-        const isMilestone = STREAK_MILESTONES.some((m) => m.days === nextStatus.currentStreak);
-        if (isMilestone) {
-          celebrate({ particleCount: 80, spread: 90 });
-        }
-        onCheckIn?.(nextStatus);
-      } else {
-        setMessage(body.error?.message ?? "Điểm danh không thành công.");
-        if (body.error?.code === "ALREADY_CHECKED_IN") {
-          setStatus((current) => ({
-            ...current,
-            canCheckIn: false,
-          }));
-        }
-      }
-    } catch (error) {
-      setMessage("Không thể kết nối API điểm danh.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   const cycleDay = status.currentStreak === 0 ? 1 : ((status.currentStreak - 1) % 7) + 1;
   const weekDays = Array.from({ length: 7 }, (_, index) => ({

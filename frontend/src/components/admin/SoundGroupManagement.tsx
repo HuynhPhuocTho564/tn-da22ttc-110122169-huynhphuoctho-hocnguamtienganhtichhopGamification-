@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import AdminErrorBlock from "./layout/AdminErrorBlock";
+import { AdminErrorBlock } from "@/components/admin/ui";
 import AdminSearchInput from "./layout/AdminSearchInput";
 
 export type AdminSoundGroup = {

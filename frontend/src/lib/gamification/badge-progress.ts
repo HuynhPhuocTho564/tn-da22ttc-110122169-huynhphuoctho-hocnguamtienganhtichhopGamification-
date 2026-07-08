@@ -52,7 +52,7 @@ export function getNearMissBadges(
       results.push({
         id: definition.id,
         name: definition.name,
-        rarity: definition.type,
+        rarity: definition.rarity,
         current: progress.current,
         target: progress.target,
         percent: Math.round(percent * 100),
@@ -86,7 +86,7 @@ export function getNextBadgeSuggestion(
       candidates.push({
         id: definition.id,
         name: definition.name,
-        rarity: definition.type,
+        rarity: definition.rarity,
         current: progress.current,
         target: progress.target,
         percent: Math.round(percent * 100),

@@ -1,7 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canSpin, spinWheel, SPIN_ELIGIBLE_STREAK, SPIN_BUY_COST } from "@/lib/gamification/spin-wheel";
+import { canSpin, spinWheel, SPIN_BUY_COST } from "@/lib/gamification/spin-wheel";
+
+/**
+ * GET /api/spin-wheel/status
+ *
+ * Check if user has already spun today.
+ * Returns { hasSpunToday: boolean }
+ */
+export async function GET() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED" } }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { streakCount: true },
+    });
+
+    const lastSpin = await prisma.spinWheelLog.findFirst({
+      where: { userId },
+      orderBy: { spunAt: "desc" },
+      select: { spunAt: true },
+    });
+
+    const hasSpunToday = !canSpin(user?.streakCount ?? 0, lastSpin?.spunAt ?? null, new Date());
+
+    return NextResponse.json({
+      success: true,
+      data: { hasSpunToday },
+    });
+  } catch (error) {
+    console.error("[spin-wheel-status] Error:", error);
+    return NextResponse.json(
+      { success: false, error: { code: "INTERNAL_ERROR" } },
+      { status: 500 },
+    );
+  }
+}
 
 /**
  * POST /api/spin-wheel
@@ -51,7 +92,7 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      // ── FREE SPIN: check streak + daily limit ──
+      // ── FREE SPIN: daily limit only ──
       const lastSpin = await prisma.spinWheelLog.findFirst({
         where: { userId },
         orderBy: { spunAt: "desc" },
@@ -63,10 +104,8 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error: {
-              code: user.streakCount < SPIN_ELIGIBLE_STREAK ? "STREAK_TOO_LOW" : "ALREADY_SPUN_TODAY",
-              message: user.streakCount < SPIN_ELIGIBLE_STREAK
-                ? `Cần chuỗi ${SPIN_ELIGIBLE_STREAK} ngày liên tiếp để quay`
-                : "Bạn đã quay hôm nay rồi",
+              code: "ALREADY_SPUN_TODAY",
+              message: "Bạn đã dùng lượt quay miễn phí hôm nay. Mua thêm lượt với 💎!",
             },
           },
           { status: 403 },
@@ -78,6 +117,7 @@ export async function POST(request: NextRequest) {
     const { prize, rotationDegrees } = spinWheel();
 
     // Log the spin + award prize (+ deduct diamonds if buySpin) in transaction
+    let newGems = user.gems;
     await prisma.$transaction(async (tx) => {
       await tx.spinWheelLog.create({
         data: {
@@ -96,14 +136,16 @@ export async function POST(request: NextRequest) {
       // Deduct diamonds for bought spin
       const gemsIncrement = (updateData.gems ?? 0) - (buySpin ? SPIN_BUY_COST : 0);
 
-      await tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
           ...(gemsIncrement !== 0 ? { gems: { increment: gemsIncrement } } : {}),
           ...(updateData.xp ? { xp: { increment: updateData.xp } } : {}),
           ...(updateData.streakFreezes ? { streakFreezes: { increment: updateData.streakFreezes } } : {}),
         },
+        select: { gems: true },
       });
+      newGems = updatedUser.gems;
     });
 
     return NextResponse.json({
@@ -116,6 +158,7 @@ export async function POST(request: NextRequest) {
         },
         rotationDegrees,
         buySpin,
+        newGems,
       },
     });
   } catch (error) {

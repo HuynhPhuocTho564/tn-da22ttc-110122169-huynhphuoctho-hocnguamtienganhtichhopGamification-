@@ -40,10 +40,10 @@ type InventoryItem = {
 };
 
 const COSMETIC_DISPLAY: Record<string, { name: string; icon: string }> = {
+  frame_silver: { name: "Viền Avatar Bạc", icon: "🖼️" },
   frame_gold: { name: "Khung Avatar Vàng", icon: "🖼️" },
+  frame_diamond: { name: "Viền Avatar Kim Cương", icon: "💎" },
   frame_fire: { name: "Khung Avatar Lửa", icon: "🔥" },
-  title_scholar: { name: "Danh Hiệu: Học Giả", icon: "🎓" },
-  title_champion: { name: "Danh Hiệu: Quán Quân", icon: "👑" },
 };
 
 function buildInventoryItems(data: InventoryData): InventoryItem[] {
@@ -56,9 +56,9 @@ function buildInventoryItems(data: InventoryData): InventoryItem[] {
       quantity: data.streakFreezes,
       description: "Bảo vệ chuỗi ngày khi bạn lỡ không luyện tập 1 ngày.",
       howToUse:
-        "Chủ động: nhấn nút \"Dùng\" trước khi bỏ lỡ 1 ngày để kích hoạt bảo vệ streak.",
+        "Tự động: vật phẩm sẽ được sử dụng khi bạn bỏ lỡ 1 ngày trong chuỗi streak.",
       category: "consumable",
-      useApiId: "streak_freeze",
+      // No useApiId — auto-consumed in checkin/submit routes
     },
     {
       id: "xp_boost",
@@ -67,9 +67,9 @@ function buildInventoryItems(data: InventoryData): InventoryItem[] {
       quantity: data.xpBoostRemaining,
       description: "Nhân 1.5x EXP cho mỗi bài tập hoàn thành.",
       howToUse:
-        "Chủ động: nhấn nút \"Dùng\" trước khi làm bài để áp dụng boost cho lượt đó.",
+        "Tự động: boost sẽ được áp dụng cho bài tập tiếp theo khi bạn hoàn thành.",
       category: "consumable",
-      useApiId: "xp_boost",
+      // No useApiId — auto-consumed in exercises/submit route
     },
     {
       id: "hint_token",
@@ -78,9 +78,9 @@ function buildInventoryItems(data: InventoryData): InventoryItem[] {
       quantity: data.hintTokens,
       description: "Loại bỏ 1 đáp án sai trong bài nghe chọn.",
       howToUse:
-        "Nhấn nút \"💡 Gợi ý\" trong bài tập Nghe & Chọn, hoặc nhấn \"Dùng\" ở đây.",
+        "Tự động: dùng trong bài tập Nghe & Chọn khi nhấn nút 💡 Gợi ý.",
       category: "consumable",
-      useApiId: "hint_token",
+      // No useApiId — auto-used in ListenChooseQuestion
     },
     {
       id: "second_chance",
@@ -89,9 +89,9 @@ function buildInventoryItems(data: InventoryData): InventoryItem[] {
       quantity: data.secondChances,
       description: "Được làm lại 1 câu trả lời sai trong bài tập.",
       howToUse:
-        "Nhấn nút \"🔄 Làm lại\" sau khi trả lời sai, hoặc nhấn \"Dùng\" ở đây.",
+        "Tự động: dùng trong bài tập khi nhấn nút 🔄 Làm lại sau khi trả lời sai.",
       category: "consumable",
-      useApiId: "second_chance",
+      // No useApiId — auto-used in ListenFeedbackSheet
     },
     // Permanent unlocks
     {
@@ -137,6 +137,7 @@ export default function InventoryClient({ inventory }: { inventory: InventoryDat
   const [filter, setFilter] = useState<"all" | "consumable" | "permanent" | "cosmetic">("all");
   const [data, setData] = useState<InventoryData>(inventory);
   const [pendingUseId, setPendingUseId] = useState<string | null>(null);
+  const [pendingEquipId, setPendingEquipId] = useState<string | null>(null);
   const [useMessage, setUseMessage] = useState<{ type: "success" | "error"; text: string } | null>(
     null,
   );
@@ -202,8 +203,55 @@ export default function InventoryClient({ inventory }: { inventory: InventoryDat
     }
   }
 
+  async function handleToggleEquip(itemId: string, displayName: string) {
+    setPendingEquipId(itemId);
+    setUseMessage(null);
+
+    try {
+      const res = await fetch("/api/cosmetics/toggle-equip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId }),
+      });
+      const body = await res.json();
+
+      if (!body.success) {
+        setUseMessage({ type: "error", text: body.error?.message ?? "Lỗi trang bị" });
+        return;
+      }
+
+      const newEquipped = body.data.equipped;
+
+      setData((current) => ({
+        ...current,
+        cosmetics: current.cosmetics.map((c) => {
+          // If equipping a new frame, unequip all other frames
+          if (newEquipped && c.itemId !== itemId && c.itemId.startsWith("frame_")) {
+            return { ...c, equipped: false };
+          }
+          // Toggle the target item
+          return c.itemId === itemId ? { ...c, equipped: newEquipped } : c;
+        }),
+      }));
+
+      setUseMessage({
+        type: "success",
+        text: newEquipped
+          ? `Đã trang bị ${displayName}`
+          : `Đã tháo ${displayName}`,
+      });
+    } catch {
+      setUseMessage({ type: "error", text: "Lỗi kết nối" });
+    } finally {
+      setPendingEquipId(null);
+      startTransition(() => {
+        setTimeout(() => setUseMessage(null), 3000);
+      });
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <main className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -270,11 +318,11 @@ export default function InventoryClient({ inventory }: { inventory: InventoryDat
           {filtered.map((item) => {
             const hasItem = item.quantity !== "inactive" && item.quantity !== 0;
             const quantityLabel =
-              item.quantity === "permanent"
-                ? "♾️ Vĩnh viễn"
-                : item.quantity === "inactive"
-                  ? "Chưa có"
-                  : `×${item.quantity}`;
+              item.quantity === "inactive"
+                ? "Chưa có"
+                : typeof item.quantity === "number"
+                  ? `×${item.quantity}`
+                  : "";
 
             const isConsumableUsable =
               item.category === "consumable" &&
@@ -306,15 +354,17 @@ export default function InventoryClient({ inventory }: { inventory: InventoryDat
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-neutral-900">{item.name}</h3>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                        hasItem
-                          ? "bg-success-100 text-success-700"
-                          : "bg-neutral-100 text-neutral-500"
-                      }`}
-                    >
-                      {quantityLabel}
-                    </span>
+                    {quantityLabel && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                          hasItem
+                            ? "bg-success-100 text-success-700"
+                            : "bg-neutral-100 text-neutral-500"
+                        }`}
+                      >
+                        {quantityLabel}
+                      </span>
+                    )}
                     {item.equipped && (
                       <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
                         Đang dùng
@@ -327,7 +377,7 @@ export default function InventoryClient({ inventory }: { inventory: InventoryDat
                   </p>
                 </div>
 
-                {/* Active "Dùng" button — chỉ hiển thị với consumable có quantity > 0 */}
+                {/* Active "Dùng" button — consumable */}
                 {isConsumableUsable && (
                   <button
                     type="button"
@@ -343,6 +393,32 @@ export default function InventoryClient({ inventory }: { inventory: InventoryDat
                       </span>
                     ) : (
                       "Dùng"
+                    )}
+                  </button>
+                )}
+
+                {/* Equip/Unequip button — cosmetic */}
+                {item.category === "cosmetic" && (
+                  <button
+                    type="button"
+                    onClick={() => handleToggleEquip(item.id, item.name)}
+                    disabled={pendingEquipId === item.id}
+                    aria-label={item.equipped ? `Tháo ${item.name}` : `Trang bị ${item.name}`}
+                    className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl px-4 py-2 text-sm font-bold shadow-sm transition-all focus:outline-none focus-visible:ring-4 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${
+                      item.equipped
+                        ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300 focus-visible:ring-neutral-400"
+                        : "bg-purple-600 text-white hover:bg-purple-700 focus-visible:ring-purple-300"
+                    }`}
+                  >
+                    {pendingEquipId === item.id ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ...
+                      </span>
+                    ) : item.equipped ? (
+                      "Tháo"
+                    ) : (
+                      "Trang bị"
                     )}
                   </button>
                 )}

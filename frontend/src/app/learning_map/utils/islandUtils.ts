@@ -6,8 +6,6 @@
 import type { TopicUI, LearningMapUI } from "../types/island";
 import type { IslandData, CampData, IslandState, CampState, IslandHealth, CampPosition } from "../types/island";
 import {
-  ISLAND_UNLOCK_THRESHOLD_PERCENT,
-  EXERCISE_COMPLETE_SCORE,
   ISLAND_BIOMES,
   ISLAND_ORDER,
   FALLBACK_BIOME,

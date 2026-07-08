@@ -31,10 +31,10 @@ test("first exercise attempt earns score-based EXP and ranking score", () => {
     exerciseCompleted: true,
   });
 
-  assert.equal(rewards.baseXp, 85);
+  assert.equal(rewards.baseXp, 128); // 85 × 1.5 = 127.5 → 128
   assert.equal(rewards.retakeXp, 0);
   assert.equal(rewards.dailyBonusXp, 0);
-  assert.equal(rewards.xpEarned, 85);
+  assert.equal(rewards.xpEarned, 128);
   assert.equal(rewards.rankingDelta, 85);
   assert.equal(rewards.totalRankingDelta, 85);
 });
@@ -47,7 +47,7 @@ test("improved retake earns partial EXP and only the improved ranking delta", ()
     exerciseCompleted: true,
   });
 
-  assert.equal(rewards.baseXp, 63);
+  assert.equal(rewards.baseXp, 40); // (90 - 70) × 2 = 40
   assert.equal(rewards.retakeXp, 0);
   assert.equal(rewards.rankingDelta, 20);
   assert.equal(rewards.totalRankingDelta, 20);
@@ -62,7 +62,7 @@ test("lower retake still earns a small practice reward", () => {
   });
 
   assert.equal(rewards.baseXp, 0);
-  assert.equal(rewards.retakeXp, 8);
+  assert.equal(rewards.retakeXp, 16); // 80 × 0.2 = 16
   assert.equal(rewards.rankingDelta, 0);
   assert.equal(rewards.retakeRanking, 4);
   assert.equal(rewards.totalRankingDelta, 4);
@@ -94,14 +94,18 @@ test("daily completion bonus applies at configured milestones", () => {
     exerciseCompleted: true,
   });
 
-  assert.equal(secondCompleted.dailyBonusXp, 5);
+  assert.equal(secondCompleted.dailyBonusXp, 10);
   assert.equal(secondCompleted.dailyBonusRanking, 2);
-  assert.equal(thirdCompleted.dailyBonusXp, 10);
+  assert.equal(secondCompleted.gemsEarned, 3);
+  assert.equal(thirdCompleted.dailyBonusXp, 20);
   assert.equal(thirdCompleted.dailyBonusRanking, 4);
-  assert.equal(fifthCompleted.dailyBonusXp, 20);
+  assert.equal(thirdCompleted.gemsEarned, 3);
+  assert.equal(fifthCompleted.dailyBonusXp, 35);
   assert.equal(fifthCompleted.dailyBonusRanking, 8);
-  assert.equal(eighthCompleted.dailyBonusXp, 30);
+  assert.equal(fifthCompleted.gemsEarned, 5);
+  assert.equal(eighthCompleted.dailyBonusXp, 50);
   assert.equal(eighthCompleted.dailyBonusRanking, 12);
+  assert.equal(eighthCompleted.gemsEarned, 8);
 });
 
 test("low-score unfinished attempts do not receive practice or daily rewards", () => {
@@ -136,15 +140,14 @@ test("check-in reward and leaderboard targets remain explicit", () => {
   });
   assert.deepEqual(
     targets.map((target) => target.type),
-    ["tuan", "thang"],
+    ["tuan"],
   );
   assert.equal(targets[0].period, "2026-W24");
-  assert.equal(targets[1].period, "2026-06");
 });
 
 test("badge definitions expose progress metadata for the badge page", () => {
-  const firstExercise = getBadgeDefinition("badge-progress-first-exercise");
-  const streakSeven = BADGE_DEFINITIONS.find((definition) => definition.id === "badge-streak-7");
+  const firstExercise = getBadgeDefinition("badge-milestone-first-exercise");
+  const streakSeven = BADGE_DEFINITIONS.find((definition) => definition.id === "badge-streak-silver");
 
   assert.ok(firstExercise);
   assert.ok(streakSeven);
@@ -191,28 +194,28 @@ const MOCK_STATS = {
 };
 
 test("getBadgeProgressFromStats: progress badge reads completedExercises", () => {
-  const def = getBadgeDefinition("badge-progress-ten-exercises");
+  const def = getBadgeDefinition("badge-milestone-ten-exercises");
   assert.ok(def);
   const result = getBadgeProgressFromStats(def, MOCK_STATS);
   assert.deepEqual(result, { current: 8, target: 10, unit: "exercise" });
 });
 
 test("getBadgeProgressFromStats: streak badge reads streakCount", () => {
-  const def = getBadgeDefinition("badge-streak-7");
+  const def = getBadgeDefinition("badge-streak-silver");
   assert.ok(def);
   const result = getBadgeProgressFromStats(def, MOCK_STATS);
   assert.deepEqual(result, { current: 5, target: 7, unit: "day" });
 });
 
 test("getBadgeProgressFromStats: skill badge reads correct stat", () => {
-  const def = getBadgeDefinition("badge-skill-good-listener");
+  const def = getBadgeDefinition("badge-skill-ear-training");
   assert.ok(def);
   const result = getBadgeProgressFromStats(def, MOCK_STATS);
-  assert.deepEqual(result, { current: 3, target: 5, unit: "listen_exercise" });
+  assert.deepEqual(result, { current: 3, target: 3, unit: "listen_exercise" });
 });
 
 test("getBadgeProgressFromStats: new explorer badge reads uniqueTopicCount", () => {
-  const def = getBadgeDefinition("badge-explorer-all-topics");
+  const def = getBadgeDefinition("badge-explorer-ipa");
   assert.ok(def);
   const result = getBadgeProgressFromStats(def, MOCK_STATS);
   assert.deepEqual(result, { current: 2, target: 4, unit: "topic" });
@@ -245,10 +248,10 @@ test("all badge definitions have valid statKey", () => {
 
 // ===== SP7: Diamond + Streak Freeze =====
 
-test("diamond reward: EXCELLENT → +5 gems, GOOD → +2 gems, others → 0", () => {
-  assert.equal(computeGemReward("EXCELLENT"), 5);
-  assert.equal(computeGemReward("GOOD"), 2);
-  assert.equal(computeGemReward("PASS"), 0);
+test("diamond reward: EXCELLENT → +10 gems, GOOD → +5 gems, PASS → +2 gems, NEEDS_PRACTICE → 0", () => {
+  assert.equal(computeGemReward("EXCELLENT"), 10);
+  assert.equal(computeGemReward("GOOD"), 5);
+  assert.equal(computeGemReward("PASS"), 2);
   assert.equal(computeGemReward("NEEDS_PRACTICE"), 0);
 });
 
@@ -310,8 +313,9 @@ test("MAX_RETAKE_PER_DAY is 5", () => {
 // ===== SP7: Coverage — constants + helpers =====
 
 test("GEM_REWARDS constant has expected values", () => {
-  assert.equal(GEM_REWARDS.excellent_exercise, 5);
-  assert.equal(GEM_REWARDS.good_exercise, 2);
+  assert.equal(GEM_REWARDS.excellent_exercise, 10);
+  assert.equal(GEM_REWARDS.good_exercise, 5);
+  assert.equal(GEM_REWARDS.pass_exercise, 2);
   assert.equal(GEM_REWARDS.daily_checkin, 3);
   assert.equal(GEM_REWARDS.streak_7_bonus, 15);
   assert.equal(GEM_REWARDS.streak_14_bonus, 30);
@@ -331,9 +335,8 @@ test("SHOP_ITEMS has 10 items with valid structure", () => {
   }
 });
 
-test("SHOP_ITEMS includes 3 implemented items", () => {
+test("SHOP_ITEMS includes 2 implemented items", () => {
   const ids = SHOP_ITEMS.map((i) => i.id);
-  assert.ok(ids.includes("ipa_reveal"), "must have ipa_reveal");
   assert.ok(ids.includes("slow_audio"), "must have slow_audio");
   assert.ok(ids.includes("streak_freeze"), "must have streak_freeze");
 });

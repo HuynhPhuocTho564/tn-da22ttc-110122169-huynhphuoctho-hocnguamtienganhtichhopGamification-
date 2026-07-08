@@ -7,7 +7,6 @@ import {
   readJsonObject,
   readNullableString,
   readOptionalStatus,
-  readRequiredString,
   requireAdminSession,
 } from "@/lib/admin-api";
 type RouteContext = { params: Promise<{ id: string }> };

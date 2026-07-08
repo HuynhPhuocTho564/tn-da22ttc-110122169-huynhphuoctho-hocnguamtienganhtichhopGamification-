@@ -1,20 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { SHOP_ITEMS, type ShopCategory } from "@/lib/gamification";
+import { useRewardEvents } from "@/components/gamification/effects/RewardEventContext";
 
 type DiamondsDisplayProps = {
- initialGems: number;
+  initialGems: number;
+  purchasedItemIds?: string[];
 };
 
 type PurchaseResult = {
  success: boolean;
  data?: {
- item: { id: string; name: string };
- cost: number;
- user: { gems: number; streakFreezes: number; unlockedIpaReveal: boolean; unlockedSlowAudio: boolean };
+  item: { id: string; name: string };
+  cost: number;
+  user: { gems: number; streakFreezes: number; unlockedIpaReveal: boolean; unlockedSlowAudio: boolean; xpBoostRemaining: number; hintTokens: number; secondChances: number };
  };
  error?: { code: string; message: string };
 };
@@ -27,8 +29,12 @@ const CATEGORIES: Array<{ id: ShopCategory | "all"; label: string }> = [
  { id: "cosmetic", label: "✨ Trang trí" },
 ];
 
-// Item đã có backend effect (mua thật). Item khác chỉ "sắp ra mắt" — trừ gems nhưng chưa có effect.
-const IMPLEMENTED_ITEM_IDS = new Set(["streak_freeze", "ipa_reveal", "slow_audio"]);
+// All 10 items are implemented — read from DB ShopItem table.
+const IMPLEMENTED_ITEM_IDS = new Set([
+  "streak_freeze", "ipa_reveal", "slow_audio",
+  "xp_boost", "hint_token", "second_chance",
+  "frame_silver", "frame_gold", "frame_diamond", "frame_fire",
+]);
 
 /**
  * DiamondsDisplay - Hiển thị số đá quý và nút mở cửa hàng.
@@ -36,12 +42,25 @@ const IMPLEMENTED_ITEM_IDS = new Set(["streak_freeze", "ipa_reveal", "slow_audio
  *
  * Task 4.2: shop mở rộng 10 items + category tabs + confirm purchase (H5).
  */
-export default function DiamondsDisplay({ initialGems }: DiamondsDisplayProps) {
- const [gems, setGems] = useState(initialGems);
- const [isShopOpen, setIsShopOpen] = useState(false);
- const [purchasingId, setPurchasingId] = useState<string | null>(null);
- const [message, setMessage] = useState<string | null>(null);
- const [selectedCategory, setSelectedCategory] = useState<ShopCategory | "all">("all");
+export default function DiamondsDisplay({ initialGems, purchasedItemIds = [] }: DiamondsDisplayProps) {
+  const [gems, setGems] = useState(initialGems);
+  const [purchased, setPurchased] = useState<Set<string>>(new Set(purchasedItemIds));
+  const [isShopOpen, setIsShopOpen] = useState(false);
+  const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ShopCategory | "all">("all");
+  const { emit } = useRewardEvents();
+
+ // Listen for gems updates from other components (e.g., spin wheel)
+ useEffect(() => {
+   const handleGemsUpdated = (e: Event) => {
+     const detail = (e as CustomEvent).detail;
+     if (detail && typeof detail.gems === "number") {
+       setGems(detail.gems);
+     }
+   };
+   window.addEventListener("gems-updated", handleGemsUpdated);
+   return () => window.removeEventListener("gems-updated", handleGemsUpdated);
+ }, []);
 
  async function handlePurchase(itemId: string, itemName: string, cost: number) {
  // Task 4.2: confirm trước khi mua (Nielsen H5 — Error Prevention)
@@ -51,7 +70,6 @@ export default function DiamondsDisplay({ initialGems }: DiamondsDisplayProps) {
  if (!confirmed) return;
 
  setPurchasingId(itemId);
- setMessage(null);
 
  try {
  const response = await fetch("/api/shop", {
@@ -61,16 +79,17 @@ export default function DiamondsDisplay({ initialGems }: DiamondsDisplayProps) {
  });
  const body = (await response.json()) as PurchaseResult;
 
- if (body.success && body.data) {
- setGems(body.data.user.gems);
- setMessage(`Đã mua "${body.data.item.name}" thành công!`);
- } else {
- setMessage(body.error?.message ?? "Mua hàng thất bại.");
- }
+  if (body.success && body.data) {
+  setGems(body.data.user.gems);
+  setPurchased((prev) => new Set([...prev, itemId]));
+  emit({ type: "purchase", label: `Đã mua "${body.data.item.name}" thành công!` });
+  } else {
+  emit({ type: "purchase", label: body.error?.message ?? "Mua hàng thất bại." });
+  }
  } catch {
- setMessage("Không thể kết nối server.");
+  emit({ type: "purchase", label: "Không thể kết nối server." });
  } finally {
- setPurchasingId(null);
+  setPurchasingId(null);
  }
  }
 
@@ -95,7 +114,6 @@ export default function DiamondsDisplay({ initialGems }: DiamondsDisplayProps) {
  isOpen={isShopOpen}
  onClose={() => {
  setIsShopOpen(false);
- setMessage(null);
  }}
  title="Cửa Hàng Đá Quý"
  size="md"
@@ -128,6 +146,7 @@ export default function DiamondsDisplay({ initialGems }: DiamondsDisplayProps) {
  {filteredItems.map((item) => {
  const canAfford = gems >= item.cost;
  const isImplemented = IMPLEMENTED_ITEM_IDS.has(item.id);
+ const isOwned = purchased.has(item.id);
  return (
  <li
  key={item.id}
@@ -143,34 +162,31 @@ export default function DiamondsDisplay({ initialGems }: DiamondsDisplayProps) {
  Sắp ra mắt
  </span>
  )}
+ {isOwned && (
+ <span className="ml-2 rounded bg-success-100 px-1.5 py-0.5 text-[10px] font-bold text-success-700">
+ Đã mua
+ </span>
+ )}
  </p>
  <p className="text-sm text-neutral-600 ">{item.desc}</p>
+ {!isOwned && (
  <p className="mt-1 text-sm font-bold text-amber-600">{item.cost} 💎</p>
+ )}
  </div>
  </div>
  <Button
- variant="primary"
+ variant={isOwned ? "ghost" : "primary"}
  size="sm"
- disabled={!canAfford || !isImplemented || purchasingId === item.id}
+ disabled={!canAfford || !isImplemented || isOwned || purchasingId === item.id}
  loading={purchasingId === item.id}
  onClick={() => handlePurchase(item.id, item.name, item.cost)}
  >
- {!isImplemented ? "Sắp ra mắt" : canAfford ? "Mua" : "Không đủ"}
+ {!isImplemented ? "Sắp ra mắt" : isOwned ? "Đã mua" : canAfford ? "Mua" : "Không đủ"}
  </Button>
  </li>
  );
  })}
  </ul>
-
- {message && (
- <div
- className="rounded-lg border border-primary-200 bg-primary-50 p-3 text-sm text-neutral-700"
- role="status"
- aria-live="polite"
- >
- {message}
- </div>
- )}
  </div>
  </Modal>
  </>

@@ -1,8 +1,11 @@
 /**
  * LISTEN-CHOOSE 3-STAGE BUILDER (SP-fix) - Helper sinh 10 câu phoneme-ID cho mode listen_choose.
  *
- * 3 stage: S1 (q1-4) hiện word+audio+N nút IPA; S2 (q5-8) ẩn word + IPA skeleton;
- * S3 (q9-10) chỉ audio+N nút. N = số contrastPhonemes (2 hoặc 3, nhóm 1-âm mồi → 2).
+ * 3 stage (3-3-4 ratio, Gradual Release of Responsibility):
+ * S1 (q1-3) hiện word+audio+N nút IPA — I do (modelling);
+ * S2 (q4-6) ẩn word, hiện IPA skeleton — We do (guided practice);
+ * S3 (q7-10) chỉ audio+N nút — You do (independent practice).
+ * N = số contrastPhonemes (2 hoặc 3, nhóm 1-âm mồi → 2).
  *
  * Tách ra file riêng để testable (không phụ thuộc Prisma).
  */
@@ -24,6 +27,8 @@ export type ListenChooseQuestion = {
   contrastPhonemes: string[];
   skeleton: string | null;
   answer: string; // = targetPhoneme
+  /** Stage 1: chỉ hiện word, không hiện IPA. */
+  showIpa: boolean;
 };
 
 /**
@@ -81,12 +86,15 @@ export function buildContrastPhonemes(
 }
 
 /**
- * Map index 0-9 → stage (1/2/3). 4/4/2 split.
+ * Map index 0-9 → stage (1/2/3). 3/3/4 split (Gradual Release of Responsibility).
+ * Stage 1 (q1-3): modelling — hiện word + audio, nghe và nhận diện.
+ * Stage 2 (q4-6): guided — hiện skeleton, nghe và chọn phoneme thiếu.
+ * Stage 3 (q7-10): independent — chỉ audio, nghe và chọn.
  */
 export function splitStages(total: number): number[] {
   return Array.from({ length: total }, (_, i) => {
-    if (i < 4) return 1;
-    if (i < 8) return 2;
+    if (i < 3) return 1;
+    if (i < 6) return 2;
     return 3;
   });
 }
@@ -118,6 +126,7 @@ export function buildListenChooseQuestions(
   return selected.map((w, i) => {
     const stage = stages[i] as 1 | 2 | 3;
     const skeleton = stage === 2 ? buildSkeleton(w.ipa, w.targetPhoneme) : null;
+    const showIpa = stage !== 1; // Stage 1: hiện word, ẩn IPA
     return {
       stage,
       answerType: "phoneme" as const,
@@ -128,6 +137,7 @@ export function buildListenChooseQuestions(
       contrastPhonemes,
       skeleton,
       answer: w.targetPhoneme,
+      showIpa,
     };
   });
 }

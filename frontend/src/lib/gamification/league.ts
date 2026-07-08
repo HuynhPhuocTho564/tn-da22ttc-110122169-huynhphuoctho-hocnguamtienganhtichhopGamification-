@@ -45,7 +45,7 @@ export const COHORT_SIZE = 30;
  * Diamonds thưởng cho top 7, index 0 = rank 1, giảm dần theo rank.
  * Tạo Goal-Gradient Effect: user thấy "gần tới đích" → tăng effort.
  */
-export const TIER_GEM_REWARDS = [50, 40, 30, 20, 15, 10, 5] as const;
+export const TIER_GEM_REWARDS = [100, 60, 60, 30, 30, 15, 15] as const;
 
 // ─── Tier Display ────────────────────────────────────────────
 

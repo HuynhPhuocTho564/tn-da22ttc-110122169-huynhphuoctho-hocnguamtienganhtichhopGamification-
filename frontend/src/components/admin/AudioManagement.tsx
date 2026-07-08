@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
-import AdminErrorBlock from "./layout/AdminErrorBlock";
+import { AdminErrorBlock } from "@/components/admin/ui";
 import AdminSearchInput from "./layout/AdminSearchInput";
 
 export type AdminAudioFile = {

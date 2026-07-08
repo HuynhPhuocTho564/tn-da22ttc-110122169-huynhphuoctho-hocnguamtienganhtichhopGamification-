@@ -7,8 +7,6 @@
  */
 
 import { useEffect, useRef } from "react";
-import Badge from "@/components/ui/Badge";
-import ProgressBar from "@/components/ui/ProgressBar";
 import CampCard from "./CampCard";
 import { getBiomeForTopic } from "../utils/islandUtils";
 import type { IslandData, CampData } from "../types/island";
@@ -29,14 +27,11 @@ const GRADIENT: Record<string, string> = {
 export default function IslandDetailPanel({ island, onBack, onCampSelect }: IslandDetailPanelProps) {
   const biome = getBiomeForTopic(island.topicId);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  // nielsen H2 + WCAG 2.4.3: focus the heading on mount so screen-reader and
-  // keyboard users land in the right context after clicking an island.
   useEffect(() => {
-    headingRef.current?.focus();
+    headingRef.current?.focus({ preventScroll: true });
   }, []);
-  // Reset focus when island changes (so navigating between islands re-announces the new one)
   useEffect(() => {
-    headingRef.current?.focus();
+    headingRef.current?.focus({ preventScroll: true });
   }, [island.topicId]);
   const bId = biome.id;
   const gradClass = GRADIENT[bId] ?? "from-neutral-400 to-neutral-600";
@@ -53,15 +48,6 @@ export default function IslandDetailPanel({ island, onBack, onCampSelect }: Isla
 
   return (
     <div className="animate-slide-up-panel">
-      {/* Back button */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-5 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-base font-bold text-neutral-900 shadow-sm border border-neutral-300 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500"
-      >
-        ← Bản đồ
-      </button>
-
       {/* ═══ ISLAND HEADER ═══ */}
       <div className={`mb-6 rounded-2xl bg-gradient-to-r ${gradClass} p-5 text-white shadow-lg`}>
         <div className="flex items-center gap-4">
@@ -71,9 +57,6 @@ export default function IslandDetailPanel({ island, onBack, onCampSelect }: Isla
               {island.name}
             </h1>
             <p className="mt-1 text-base font-normal">{island.description}</p>
-            <p className="mt-1 text-sm font-normal">
-              {island.camps.length} trại · {island.totalExercises} bài tập · đạt {island.completedExercises}/{island.totalExercises}
-            </p>
           </div>
           <div className="text-right">
             <div className="text-5xl font-bold leading-none">{island.completionPercent}%</div>
@@ -90,20 +73,6 @@ export default function IslandDetailPanel({ island, onBack, onCampSelect }: Isla
           </div>
         </div>
       </div>
-
-      {/* ═══ LANDMARK CTA (≥80%) ═══ */}
-      {island.completionPercent >= 80 && (
-        <div className="mb-6 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{biome.landmark.icon}</span>
-            <div className="flex-1">
-              <h3 className="font-bold text-amber-800">{biome.landmark.name}</h3>
-              <p className="text-sm text-amber-700">{biome.landmark.description}</p>
-            </div>
-            <Badge variant="warning" size="md">🏆 Thử thách</Badge>
-          </div>
-        </div>
-      )}
 
       {/* ═══ CAMP CARDS ═══ */}
       {Object.entries(groups).map(([key, camps]) => (

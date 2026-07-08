@@ -34,7 +34,7 @@ export function parseWordPrompt(content: string): WordPrompt {
   try {
     const parsed = JSON.parse(content) as Partial<WordPrompt>;
     return {
-      word: String(parsed.word ?? content),
+      word: parsed.word ? String(parsed.word) : undefined,
       ipa: parsed.ipa ? String(parsed.ipa) : undefined,
       audioUrl: parsed.audioUrl ? String(parsed.audioUrl) : undefined,
       hint: parsed.hint ? String(parsed.hint) : undefined,
@@ -42,6 +42,7 @@ export function parseWordPrompt(content: string): WordPrompt {
       // v2 listen_choose 3-stage (phoneme identification) — must set for correct stage rendering
       answerType: parsed.answerType,
       stage: parsed.stage,
+      showIpa: typeof parsed.showIpa === "boolean" ? parsed.showIpa : true,
       targetPhoneme: parsed.targetPhoneme ? String(parsed.targetPhoneme) : undefined,
       contrastPhonemes: Array.isArray(parsed.contrastPhonemes) ? parsed.contrastPhonemes.map(String) : undefined,
       skeleton: parsed.skeleton === null ? null : parsed.skeleton ? String(parsed.skeleton) : undefined,

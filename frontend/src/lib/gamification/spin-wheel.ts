@@ -34,28 +34,23 @@ export const SPIN_WHEEL_PRIZES: SpinPrize[] = [
   { id: "gems_20", label: "20 💎", shortLabel: "20", icon: "💎", weight: 10, value: { gems: 20 }, angle: 180 },
   { id: "gems_50", label: "50 💎", shortLabel: "50", icon: "💎", weight: 10, value: { gems: 50 }, angle: 225 },
   { id: "nothing", label: "Hên xui!", shortLabel: "—", icon: "😅", weight: 4, value: {}, angle: 270 },
-  { id: "jackpot", label: "JACKPOT 100💎", shortLabel: "100", icon: "🏆", weight: 1, value: { gems: 100 }, angle: 315 },
+  { id: "jackpot", label: "JACKPOT 100💎", shortLabel: "100💎", icon: "🏆", weight: 1, value: { gems: 100 }, angle: 315 },
 ];
 
 const TOTAL_WEIGHT = SPIN_WHEEL_PRIZES.reduce((sum, p) => sum + p.weight, 0);
 
-/** Minimum streak required to earn a spin */
-export const SPIN_ELIGIBLE_STREAK = 3;
-
-/** Diamond cost to buy an extra spin (bypasses streak/daily limit) */
+/** Diamond cost to buy an extra spin (bypasses daily limit) */
 export const SPIN_BUY_COST = 15;
 
 /**
  * Check if user is eligible to spin the wheel.
- * Requires streak >= 3 and hasn't spun today.
+ * Free spin once per day (no streak requirement).
  */
 export function canSpin(
-  currentStreak: number,
+  _currentStreak: number,
   lastSpinDate: Date | null,
   today: Date,
 ): boolean {
-  if (currentStreak < SPIN_ELIGIBLE_STREAK) return false;
-
   if (lastSpinDate) {
     const lastDay = new Date(lastSpinDate);
     lastDay.setHours(0, 0, 0, 0);

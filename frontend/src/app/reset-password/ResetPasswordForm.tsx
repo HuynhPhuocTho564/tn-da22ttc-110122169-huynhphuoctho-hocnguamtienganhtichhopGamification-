@@ -57,7 +57,7 @@ export default function ResetPasswordForm() {
  setMessage(payload.data?.message ?? "Mật khẩu đã được cập nhật. Bạn có thể đăng nhập lại.");
  setPassword("");
  setConfirmPassword("");
- } catch (requestError) {
+  } catch {
  setError("Đã xảy ra lỗi hệ thống, vui lòng thử lại.");
  } finally {
  setIsLoading(false);

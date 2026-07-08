@@ -44,6 +44,25 @@ export default function ListenFeedbackSheet({
   onUseSecondChance,
 }: ListenFeedbackSheetProps) {
   const contentData = useMemo(() => parseWordPrompt(question.content), [question.content]);
+
+  // Parse additional fields for different question types (assimilation, linking, weak forms)
+  const extraData = useMemo(() => {
+    try {
+      const p = JSON.parse(question.content);
+      return {
+        sentence: p.sentence ?? null,
+        assimilationType: p.assimilationType ?? null,
+        original: p.original ?? null,
+        result: p.result ?? null,
+        weakWords: p.weakWords ?? null,
+        linkingPairs: p.linkingPairs ?? null,
+        ipa: p.ipa ?? null,
+      };
+    } catch {
+      return {};
+    }
+  }, [question.content]);
+
   const isPhonemeMode = contentData.answerType === "phoneme";
   const displayWord = contentData.word
     ? contentData.word.charAt(0).toUpperCase() + contentData.word.slice(1)
@@ -98,11 +117,37 @@ export default function ListenFeedbackSheet({
             {/* ĐÚNG: hiện word + IPA (highlight target) + nghĩa + replay */}
             {isCorrect && (
               <div className="space-y-2">
-                <p className="font-bold text-neutral-900">
-                  {displayWord}{" "}
-                  <span className="font-ipa text-success-700">{highlightedIpa ?? ipa}</span>
-                  {meaning && <span className="font-normal text-neutral-600"> — {meaning}</span>}
-                </p>
+                {/* Assimilation question */}
+                {extraData.sentence && extraData.assimilationType ? (
+                  <div className="space-y-1">
+                    <p className="font-bold text-neutral-900">{extraData.sentence}</p>
+                    <p className="text-sm text-neutral-700">
+                      Biến âm: <span className="font-ipa font-bold text-success-700">{extraData.original}</span> → <span className="font-ipa font-bold text-success-700">{extraData.result}</span>
+                    </p>
+                    <p className="text-sm text-neutral-600">
+                      Loại: <span className="font-bold">{extraData.assimilationType}</span>
+                    </p>
+                  </div>
+                ) : extraData.sentence && extraData.linkingPairs ? (
+                  <div className="space-y-1">
+                    <p className="font-bold text-neutral-900">{extraData.sentence}</p>
+                    <p className="font-ipa text-sm text-success-700">{extraData.ipa ?? ipa}</p>
+                    <p className="text-sm text-neutral-700">
+                      Cặp nối âm:{" "}
+                      {extraData.linkingPairs.map((pair: string[], i: number) => (
+                        <span key={i} className="font-bold text-success-700">
+                          {pair[0]}→{pair[1]}{i < extraData.linkingPairs.length - 1 ? ", " : ""}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-bold text-neutral-900">
+                    {displayWord}{" "}
+                    <span className="font-ipa text-success-700">{highlightedIpa ?? ipa}</span>
+                    {meaning && <span className="font-normal text-neutral-600"> — {meaning}</span>}
+                  </p>
+                )}
                 <MiniSpeaker audioUrl={contentData.audioUrl} label="Phát lại" />
               </div>
             )}
@@ -110,11 +155,41 @@ export default function ListenFeedbackSheet({
             {/* SAI: contrast comparison + 2 loa nghe so sánh + IPA hint (Task 5.1) */}
             {!isCorrect && (
               <div className="space-y-3">
-                <p className="font-medium text-neutral-800">
-                  Bạn chọn{" "}
-                  <span className="font-bold text-warning-700">{selectedAnswer}</span>, đáp án{" "}
-                  <span className="font-bold text-success-700">{question.answer}</span>
-                </p>
+                {/* Assimilation question - show correct form */}
+                {extraData.sentence && extraData.assimilationType ? (
+                  <div className="space-y-1">
+                    <p className="font-medium text-neutral-800">
+                      Bạn chọn <span className="font-bold text-warning-700">{selectedAnswer}</span>
+                    </p>
+                    <p className="text-sm text-neutral-700">
+                      Đáp án đúng: <span className="font-ipa font-bold text-success-700">{extraData.result}</span>
+                    </p>
+                    <p className="text-sm text-neutral-600">
+                      Loại biến âm: <span className="font-bold">{extraData.assimilationType}</span> — {extraData.original} → {extraData.result}
+                    </p>
+                  </div>
+                ) : extraData.sentence && extraData.linkingPairs ? (
+                  <div className="space-y-1">
+                    <p className="font-medium text-neutral-800">
+                      Bạn chọn <span className="font-bold text-warning-700">{selectedAnswer}</span>
+                    </p>
+                    <p className="text-sm text-neutral-700">
+                      Đáp án đúng:{" "}
+                      {extraData.linkingPairs.map((pair: string[], i: number) => (
+                        <span key={i} className="font-bold text-success-700">
+                          {pair[0]}→{pair[1]}{i < extraData.linkingPairs.length - 1 ? ", " : ""}
+                        </span>
+                      ))}
+                    </p>
+                    <p className="font-ipa text-xs text-neutral-500">{extraData.ipa ?? ipa}</p>
+                  </div>
+                ) : (
+                  <p className="font-medium text-neutral-800">
+                    Bạn chọn{" "}
+                    <span className="font-bold text-warning-700">{selectedAnswer}</span>, đáp án{" "}
+                    <span className="font-bold text-success-700">{question.answer}</span>
+                  </p>
+                )}
                 {(selectedOption?.audioUrl || correctOption?.audioUrl) && (
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold text-neutral-600">So sánh 2 âm:</span>

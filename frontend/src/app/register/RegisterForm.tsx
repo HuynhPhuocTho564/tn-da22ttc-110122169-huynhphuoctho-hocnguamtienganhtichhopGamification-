@@ -72,7 +72,7 @@ export default function RegisterForm({ googleEnabled }: RegisterFormProps) {
  }
 
  setError(payload.error?.message ?? payload.message ?? "Đăng ký thất bại.");
- } catch (registerError) {
+  } catch {
  setError("Đã xảy ra lỗi hệ thống, vui lòng thử lại.");
  } finally {
  setIsLoading(false);

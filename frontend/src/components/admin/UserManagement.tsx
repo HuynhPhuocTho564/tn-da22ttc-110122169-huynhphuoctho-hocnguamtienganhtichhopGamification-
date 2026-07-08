@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
-import AdminErrorBlock from "./layout/AdminErrorBlock";
+import { AdminErrorBlock } from "@/components/admin/ui";
 import AdminSearchInput from "./layout/AdminSearchInput";
+import Pagination, { PAGE_SIZE } from "./layout/Pagination";
 
 export type AdminUser = {
   id: string;
@@ -50,52 +51,26 @@ type UserDetail = {
 export default function UserManagement({ users: initialUsers }: { users: AdminUser[] }) {
   const [users, setUsers] = useState(initialUsers);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editRole, setEditRole] = useState("");
-  const [editStatus, setEditStatus] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   // Detail modal state
   const [detailUser, setDetailUser] = useState<UserDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
 
-  // Reset password modal state
-  const [resetUserId, setResetUserId] = useState<string | null>(null);
-  const [resetUsername, setResetUsername] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetError, setResetError] = useState<string | null>(null);
-  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+  // Edit modal state
+  const [editUser, setEditUser] = useState<AdminUser | null>(null);
+  const [editStatus, setEditStatus] = useState<string>("ACTIVE");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const filteredUsers = useMemo(() => {
     const keyword = searchTerm.toLowerCase();
     return users.filter((user) => user.username.toLowerCase().includes(keyword) || user.email.toLowerCase().includes(keyword));
   }, [searchTerm, users]);
 
-  const handleEdit = (user: AdminUser) => {
-    setEditRole(user.role);
-    setEditStatus(user.status);
-    setEditingId(user.id);
-    setError(null);
-  };
-
-  const handleSave = async () => {
-    if (!editingId) return;
-    setError(null);
-    try {
-      const res = await fetch(`/api/admin/users/${editingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: editRole, status: editStatus }),
-      });
-      const data = await res.json();
-      if (!data.success) { setError(data.error?.message || "Lỗi"); return; }
-      const updated = data.data.user;
-      setUsers((prev) => prev.map((u) => (u.id === editingId ? { ...u, role: updated.role.name, status: updated.status } : u)));
-      setEditingId(null);
-    } catch { setError("Không thể kết nối server"); }
-  };
+  const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
+  const pagedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleViewDetail = async (user: AdminUser) => {
     setDetailError(null);
@@ -113,33 +88,34 @@ export default function UserManagement({ users: initialUsers }: { users: AdminUs
     }
   };
 
-  const openResetModal = (user: AdminUser) => {
-    setResetUserId(user.id);
-    setResetUsername(user.username);
-    setNewPassword("");
-    setResetError(null);
-    setResetSuccess(null);
+  const handleOpenEdit = (user: AdminUser) => {
+    setEditUser(user);
+    setEditStatus(user.status);
+    setEditError(null);
   };
 
-  const handleResetPassword = async () => {
-    if (!resetUserId) return;
-    setResetError(null);
-    setResetSuccess(null);
-    setResetLoading(true);
+  const handleSaveStatus = async () => {
+    if (!editUser) return;
+    setEditSaving(true);
+    setEditError(null);
     try {
-      const res = await fetch(`/api/admin/users/${resetUserId}/reset-password`, {
-        method: "POST",
+      const res = await fetch(`/api/admin/users/${editUser.id}/status`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ status: editStatus }),
       });
       const data = await res.json();
-      if (!data.success) { setResetError(data.error?.message || "Lỗi"); return; }
-      setResetSuccess(data.data.message || "Đã đặt lại mật khẩu");
-      setNewPassword("");
+      if (!data.success) {
+        setEditError(data.error?.message || "Cập nhật thất bại");
+        return;
+      }
+      // Update local state
+      setUsers((prev) => prev.map((u) => u.id === editUser.id ? { ...u, status: editStatus } : u));
+      setEditUser(null);
     } catch {
-      setResetError("Không thể kết nối server");
+      setEditError("Không thể kết nối server");
     } finally {
-      setResetLoading(false);
+      setEditSaving(false);
     }
   };
 
@@ -149,14 +125,11 @@ export default function UserManagement({ users: initialUsers }: { users: AdminUs
         <div className="p-6">
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Quản lý người dùng</h2>
-              <p className="mt-1 text-sm text-slate-600">Tổng số: {users.length} người dùng</p>
+              <p className="text-sm text-slate-600">Tổng số: {users.length} người dùng (trang {page}/{totalPages || 1})</p>
             </div>
           </div>
 
-          {error && <AdminErrorBlock message={error} className="mb-4" />}
-
-          <AdminSearchInput id="admin-user-search" aria-label="Tìm kiếm người dùng" value={searchTerm} onChange={setSearchTerm} placeholder="Tìm kiếm theo tên hoặc email..." className="mb-6" />
+          <AdminSearchInput id="admin-user-search" aria-label="Tìm kiếm người dùng" value={searchTerm} onChange={(v) => { setSearchTerm(v); setPage(1); }} placeholder="Tìm kiếm theo tên hoặc email..." className="mb-6" />
 
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -172,43 +145,20 @@ export default function UserManagement({ users: initialUsers }: { users: AdminUs
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {pagedUsers.map((user) => (
                   <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-3 text-sm font-semibold text-slate-900">{user.username}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">{user.email}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {editingId === user.id ? (
-                        <select value={editRole} onChange={(e) => setEditRole(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm">
-                          <option value="User">User</option>
-                          <option value="Admin">Admin</option>
-                        </select>
-                      ) : user.role}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600">{user.role}</td>
                     <td className="px-4 py-3">
-                      {editingId === user.id ? (
-                        <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm">
-                          <option value="ACTIVE">ACTIVE</option>
-                          <option value="INACTIVE">INACTIVE</option>
-                          <option value="BANNED">BANNED</option>
-                        </select>
-                      ) : (
-                        <Badge variant={statusVariant(user.status)} size="sm">{statusLabel(user.status)}</Badge>
-                      )}
+                      <Badge variant={statusVariant(user.status)} size="sm">{statusLabel(user.status)}</Badge>
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600">{new Date(user.createdAt).toLocaleDateString("vi-VN")}</td>
                     <td className="px-4 py-3">
-                      {editingId === user.id ? (
-                        <div className="flex gap-2">
-                          <button type="button" onClick={handleSave} className="text-sm font-semibold text-blue-600 hover:underline">Lưu</button>
-                          <button type="button" onClick={() => setEditingId(null)} className="text-sm text-slate-500 hover:underline">Hủy</button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          <button type="button" onClick={() => handleEdit(user)} className="text-sm font-semibold text-blue-600 hover:underline">Sửa</button>
-                          <button type="button" onClick={() => handleViewDetail(user)} className="text-sm font-semibold text-emerald-600 hover:underline">Chi tiết</button>
-                          <button type="button" onClick={() => openResetModal(user)} className="text-sm font-semibold text-amber-600 hover:underline">Reset MK</button>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => handleViewDetail(user)} className="text-sm font-semibold text-emerald-600 hover:underline">Xem</button>
+                        <button type="button" onClick={() => handleOpenEdit(user)} className="text-sm font-semibold text-blue-600 hover:underline">Sửa</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -223,6 +173,7 @@ export default function UserManagement({ users: initialUsers }: { users: AdminUs
           )}
         </div>
       </Card>
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Modal xem chi tiết user */}
       {detailUser !== null || detailLoading || detailError ? (
@@ -258,53 +209,39 @@ export default function UserManagement({ users: initialUsers }: { users: AdminUs
         </div>
       ) : null}
 
-      {/* Modal reset mật khẩu */}
-      {resetUserId !== null ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setResetUserId(null)}>
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      {/* Modal sửa trạng thái user */}
+      {editUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setEditUser(null)}>
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Đặt lại mật khẩu</h3>
-              <button type="button" onClick={() => setResetUserId(null)} className="text-slate-400 hover:text-slate-600" aria-label="Đóng">×</button>
+              <h3 className="text-lg font-bold text-slate-900">Sửa trạng thái</h3>
+              <button type="button" onClick={() => setEditUser(null)} className="text-slate-400 hover:text-slate-600" aria-label="Đóng">×</button>
             </div>
             <p className="mb-4 text-sm text-slate-600">
-              Đặt mật khẩu mới cho user <span className="font-semibold text-slate-900">{resetUsername}</span>. Mật khẩu phải có ít nhất 6 ký tự.
+              <span className="font-semibold">{editUser.username}</span> ({editUser.email})
             </p>
-
-            {resetError && <AdminErrorBlock message={resetError} className="mb-4" />}
-            {resetSuccess && (
-              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{resetSuccess}</div>
-            )}
-
-            <label className="mb-1 block text-sm font-semibold text-slate-700">Mật khẩu mới</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="mb-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              placeholder="Nhập mật khẩu mới (≥ 6 ký tự)"
-              minLength={6}
-            />
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleResetPassword}
-                disabled={resetLoading || newPassword.length < 6}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium text-slate-700">Trạng thái</label>
+              <select
+                value={editStatus}
+                onChange={(e) => setEditStatus(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                {resetLoading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setResetUserId(null)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-              >
-                Đóng
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="INACTIVE">Tạm ngưng</option>
+                <option value="BANNED">Bị khóa</option>
+              </select>
+            </div>
+            {editError && <p className="mb-3 text-sm text-red-600">{editError}</p>}
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setEditUser(null)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Hủy</button>
+              <button type="button" onClick={handleSaveStatus} disabled={editSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+                {editSaving ? "Đang lưu..." : "Lưu"}
               </button>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   );
 }

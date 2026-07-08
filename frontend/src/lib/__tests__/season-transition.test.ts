@@ -9,7 +9,6 @@ import {
   getGemReward,
   TIER_PROMOTION_COUNT,
   TIER_DEMOTION_COUNT,
-  MIN_PLAYERS_FOR_DEMOTION,
 } from "@/lib/gamification/league";
 
 // ─── Helper ───────────────────────────────────────────────────

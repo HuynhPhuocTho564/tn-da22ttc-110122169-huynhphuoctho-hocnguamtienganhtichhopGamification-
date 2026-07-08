@@ -8,7 +8,6 @@
  */
 
 import ProgressBar from "@/components/ui/ProgressBar";
-import { CAMP_STATE_ICONS } from "../constants/islands";
 import type { CampData } from "../types/island";
 
 interface CampCardProps {
@@ -41,13 +40,13 @@ export default function CampCard({ camp, onClick }: CampCardProps) {
           {camp.name}
         </h3>
         <span className="text-2xl shrink-0" aria-hidden="true">
-          {CAMP_STATE_ICONS[camp.state]}
+          {camp.state === "completed" ? "🏕️" : camp.state === "locked" ? "🔒" : "⛺"}
         </span>
       </div>
 
       {/* Stats */}
       <p className="mt-2 text-base font-normal text-neutral-900">
-        {camp.totalExercises} dạng bài, {camp.completedExercises} đã đạt
+        Đạt {camp.completedExercises}/{camp.totalExercises}
       </p>
 
       {/* Progress */}
@@ -55,24 +54,25 @@ export default function CampCard({ camp, onClick }: CampCardProps) {
         <ProgressBar
           value={camp.completedExercises}
           max={Math.max(camp.totalExercises, 1)}
-          showPercentage={camp.totalExercises > 0}
+          showPercentage={true}
           color={camp.state === "completed" ? "success" : "primary"}
         />
       </div>
 
-      {/* CTA — 3 trạng thái với contrast cao, không xám */}
+      {/* CTA — play icon cho in-progress, tag cho completed/locked */}
       <div className="mt-4">
         {camp.state === "locked" ? (
-          <span className="inline-block rounded-lg bg-neutral-900 px-4 py-2 text-base font-bold text-white">
+          <span className="inline-block text-sm font-medium text-neutral-400">
             🔒 Bị khóa
           </span>
-        ) : camp.state === "completed" ? (
-          <span className="inline-block rounded-lg bg-success-100 px-4 py-2 text-base font-bold text-success-800">
-            ✓ Hoàn thành
-          </span>
-        ) : (
-          <span className="inline-block rounded-lg bg-primary-100 px-4 py-2 text-base font-bold text-primary-800 transition group-hover:bg-primary-200">
-            Khám phá trại →
+        ) : camp.state === "completed" ? null : (
+          <span
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm transition-all group-hover:bg-primary-700 group-hover:scale-110"
+            aria-label={`Khám phá ${camp.name}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 ml-0.5" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </span>
         )}
       </div>

@@ -4,19 +4,14 @@ import {
   canSpin,
   spinWheel,
   SPIN_WHEEL_PRIZES,
-  SPIN_ELIGIBLE_STREAK,
 } from "../gamification/spin-wheel";
 
 describe("canSpin", () => {
   const today = new Date("2026-06-20T12:00:00");
 
-  it("returns false if streak is below minimum", () => {
-    assert.equal(canSpin(2, null, today), false);
-    assert.equal(canSpin(0, null, today), false);
-  });
-
-  it("returns true if streak >= minimum and never spun", () => {
-    assert.equal(canSpin(3, null, today), true);
+  it("returns true if never spun (any streak)", () => {
+    assert.equal(canSpin(0, null, today), true);
+    assert.equal(canSpin(2, null, today), true);
     assert.equal(canSpin(10, null, today), true);
   });
 
@@ -93,8 +88,4 @@ describe("SPIN_WHEEL_PRIZES", () => {
   });
 });
 
-describe("SPIN_ELIGIBLE_STREAK", () => {
-  it("is 3", () => {
-    assert.equal(SPIN_ELIGIBLE_STREAK, 3);
-  });
-});
+

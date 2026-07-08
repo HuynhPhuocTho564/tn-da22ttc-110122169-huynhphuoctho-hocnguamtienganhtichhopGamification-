@@ -15,6 +15,10 @@ import {
   shouldIncrementQuest,
 } from "@/lib/gamification";
 import { updateWeeklyChallengeProgress } from "@/lib/gamification/weekly-challenge-service";
+import {
+  checkAndCreateMainQuests,
+  checkAndCreateLevelUpQuest,
+} from "@/lib/gamification/missions";
 import { XP_BOOST_MULTIPLIER } from "@/lib/gamification/constants";
 import { formatLocalDate, startOfLocalDay } from "@/lib/period";
 import {
@@ -99,8 +103,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return apiFailure("UNAUTHENTICATED", "Không tìm thấy user", 401);
+      return apiFailure("USER_NOT_FOUND", "Không tìm thấy người dùng", 404);
     }
+
+    const previousLevel = user.level;
 
     const questionById = new Map(exercise.questions.map((question) => [question.id, question]));
     const answers = payload.answers;
@@ -233,7 +239,7 @@ export async function POST(request: NextRequest) {
         data: {
           xp: { increment: adjustedXpEarned },
           level: updatedUserLevel,
-          ...(gemReward > 0 ? { gems: { increment: gemReward } } : {}),
+          ...(gemReward + rewards.gemsEarned > 0 ? { gems: { increment: gemReward + rewards.gemsEarned } } : {}),
           ...(hasXpBoost ? { xpBoostRemaining: { decrement: 1 } } : {}),
         },
         select: {
@@ -406,6 +412,18 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // Main Quests: check island/camp completion + level-up (outside transaction, non-blocking)
+    try {
+      await checkAndCreateMainQuests(userId, exercise.topicId, exercise.mapId);
+      await checkAndCreateLevelUpQuest(
+        userId,
+        previousLevel,
+        result.updatedUser.level,
+      );
+    } catch {
+      // Main quest check is non-critical, don't fail the submit
+    }
+
     return apiSuccess(
       {
         exerciseAttemptId: result.attempt.id,
@@ -430,7 +448,7 @@ export async function POST(request: NextRequest) {
           xpBoostActive: hasXpBoost,
           xpBoostRemaining: result.updatedUser.xpBoostRemaining,
           retakeLimitReached: retakeLimitReached,
-          gemsEarned: gemReward,
+          gemsEarned: gemReward + rewards.gemsEarned,
           questXpEarned: result.questXpDelta,
           questGemsEarned: result.questGemDelta,
           rankingDelta: rewards.rankingDelta,

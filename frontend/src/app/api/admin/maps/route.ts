@@ -7,6 +7,10 @@ function serializeMap(map: {
   name: string;
   requirement: string | null;
   status: string;
+  subcategory: string | null;
+  requiredMapId: string | null;
+  unlockThresholdPercent: number;
+  requiredMap: { id: string; name: string } | null;
   _count: {
     exercises: number;
     progresses: number;
@@ -17,6 +21,10 @@ function serializeMap(map: {
     name: map.name,
     requirement: map.requirement,
     status: map.status,
+    subcategory: map.subcategory,
+    requiredMapId: map.requiredMapId,
+    requiredMapName: map.requiredMap?.name ?? null,
+    unlockThresholdPercent: map.unlockThresholdPercent,
     exerciseCount: map._count.exercises,
     progressCount: map._count.progresses,
   };
@@ -30,6 +38,7 @@ export async function GET() {
     const maps = await prisma.learningMap.findMany({
       orderBy: { name: "asc" },
       include: {
+        requiredMap: { select: { id: true, name: true } },
         _count: {
           select: {
             exercises: true,
@@ -59,6 +68,7 @@ export async function POST(request: NextRequest) {
     const name = readRequiredString(body, "name", 255);
     const requirement = readOptionalString(body, "requirement", 1000);
     const status = readStatus(body.status, MAP_STATUSES, "DRAFT");
+    const subcategory = readOptionalString(body, "subcategory", 255);
 
     if (!name || requirement === null || !status) {
       return apiFailure("VALIDATION_ERROR", "Dữ liệu learning map không hợp lệ", 400);
@@ -69,8 +79,10 @@ export async function POST(request: NextRequest) {
         name,
         requirement,
         status,
+        ...(subcategory !== undefined ? { subcategory } : {}),
       },
       include: {
+        requiredMap: { select: { id: true, name: true } },
         _count: {
           select: {
             exercises: true,

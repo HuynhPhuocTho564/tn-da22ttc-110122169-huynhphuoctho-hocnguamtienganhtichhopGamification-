@@ -37,8 +37,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     const name = body.name === undefined ? undefined : readRequiredString(body, "name", 255);
     const description = readNullableString(body, "description", 1000);
+    const mapId = readNullableString(body, "mapId", 64);
 
-    if (name === null || description === false) {
+    if (name === null || description === false || mapId === false) {
       return apiFailure("VALIDATION_ERROR", "Dữ liệu cập nhật chủ đề không hợp lệ", 400);
     }
 
@@ -47,11 +48,19 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return apiFailure("TOPIC_NOT_FOUND", "Không tìm thấy chủ đề", 404);
     }
 
+    // Only validate mapId FK when caller wants to assign one. "null" is
+    // valid (clear assignment). undefined = field omitted = leave unchanged.
+    if (mapId !== null && mapId !== undefined) {
+      const map = await prisma.learningMap.findUnique({ where: { id: mapId }, select: { id: true } });
+      if (!map) return apiFailure("VALIDATION_ERROR", `mapId "${mapId}" không tồn tại`, 400);
+    }
+
     const topic = await prisma.topic.update({
       where: { id },
       data: {
         ...(name !== undefined ? { name } : {}),
         ...(description !== undefined ? { description } : {}),
+        ...(mapId !== undefined ? { mapId } : {}),
       },
       include: {
         _count: {

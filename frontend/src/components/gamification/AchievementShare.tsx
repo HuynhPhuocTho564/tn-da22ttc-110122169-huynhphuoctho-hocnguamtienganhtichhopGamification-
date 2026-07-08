@@ -16,8 +16,8 @@ interface AchievementShareProps {
 /**
  * AchievementShare — Let users share achievements via clipboard or social links.
  *
- * Generates a shareable text with achievement info and app URL.
- * Supports: copy to clipboard, Twitter/X share URL.
+ * Zalo share (zalo.me/s?text=) only works on mobile (opens Zalo app).
+ * On desktop, the Zalo button is hidden and a toast is shown instead.
  *
  * variant="full" (mặc định): render box đầy đủ với icon + title + description + 2 nút.
  * variant="compact" (Task 6.1): 1 nút "🔗 Chia sẻ" mở popover — dùng inline trong
@@ -55,6 +55,8 @@ export default function AchievementShare({
   }, [shareText]);
 
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+  // Zalo share chỉ hoạt động trên mobile (mở app Zalo). Desktop → ẩn nút Zalo.
+  const zaloUrl = `https://zalo.me/s?text=${encodeURIComponent(shareText)}`;
 
   // Compact variant — 1 nút mở popover (Task 6.1)
   if (variant === "compact") {
@@ -96,6 +98,16 @@ export default function AchievementShare({
                 𝕏
               </a>
             </div>
+            <a
+              href={zaloUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setPopoverOpen(false)}
+              className="mt-2 flex min-h-9 w-full items-center justify-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400"
+              aria-label="Chia sẻ lên Zalo"
+            >
+              💬 Zalo
+            </a>
           </div>
         )}
       </div>
@@ -126,6 +138,15 @@ export default function AchievementShare({
           aria-label="Chia sẻ lên X (Twitter)"
         >
           𝕏 Chia sẻ
+        </a>
+        <a
+          href={zaloUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-9 flex-1 rounded-lg bg-blue-600 px-3 py-2 text-center text-xs font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400"
+          aria-label="Chia sẻ lên Zalo"
+        >
+          💬 Zalo
         </a>
       </div>
     </div>

@@ -14,7 +14,6 @@ import type { CampData } from "../types/island";
 
 interface CampNodeProps {
   readonly camp: CampData;
-  readonly biomeColor: string;
   readonly onClick: (camp: CampData) => void;
 }
 
@@ -33,7 +32,7 @@ const RING_COLOR_BY_STATE: Record<string, string> = {
   locked: "text-neutral-200",
 };
 
-export default function CampNode({ camp, biomeColor, onClick }: CampNodeProps) {
+export default function CampNode({ camp, onClick }: CampNodeProps) {
   const isClickable = camp.state !== "locked";
   const stateClasses = CAMP_STATE_CLASSES[camp.state] ?? CAMP_STATE_CLASSES.available;
   const ringColor = RING_COLOR_BY_STATE[camp.state] ?? "text-neutral-300";

@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import AdminErrorBlock from "./layout/AdminErrorBlock";
+import { AdminErrorBlock } from "@/components/admin/ui";
+import AdminSearchInput from "./layout/AdminSearchInput";
+import Pagination, { PAGE_SIZE } from "./layout/Pagination";
 
 export type AdminPhoneme = {
   id: string;
@@ -39,10 +41,30 @@ const emptyForm: PhonemeFormData = {
 
 export default function PhonemeManagement({ phonemes: initialPhonemes }: { phonemes: AdminPhoneme[] }) {
   const [phonemes, setPhonemes] = useState(initialPhonemes);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PhonemeFormData>(emptyForm);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
+  const filteredPhonemes = useMemo(() => {
+    const keyword = searchTerm.toLowerCase();
+    return phonemes.filter((p) => {
+      const matchesSearch = !keyword ||
+        p.symbol.toLowerCase().includes(keyword) ||
+        p.name.toLowerCase().includes(keyword) ||
+        p.description?.toLowerCase().includes(keyword);
+      const matchesCategory = categoryFilter === "ALL" || p.category === categoryFilter;
+      const matchesStatus = statusFilter === "ALL" || p.status === statusFilter;
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [phonemes, searchTerm, categoryFilter, statusFilter]);
+
+  const totalPages = Math.ceil(filteredPhonemes.length / PAGE_SIZE);
+  const pagedPhonemes = filteredPhonemes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleSubmit = async () => {
     setError(null);
@@ -116,6 +138,39 @@ export default function PhonemeManagement({ phonemes: initialPhonemes }: { phone
       </div>
 
       {error && <AdminErrorBlock message={error} className="mb-6" />}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <AdminSearchInput
+          id="admin-phoneme-search"
+          aria-label="Tìm kiếm phoneme"
+          value={searchTerm}
+          onChange={(v) => { setSearchTerm(v); setPage(1); }}
+          placeholder="Tìm theo symbol, tên, mô tả..."
+          className="flex-1"
+        />
+        <select
+          value={categoryFilter}
+          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        >
+          <option value="ALL">Tất cả category</option>
+          <option value="VOWEL">VOWEL</option>
+          <option value="DIPHTHONG">DIPHTHONG</option>
+          <option value="CONSONANT">CONSONANT</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        >
+          <option value="ALL">Tất cả status</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="DRAFT">DRAFT</option>
+          <option value="NEEDS_REVIEW">NEEDS_REVIEW</option>
+          <option value="ARCHIVED">ARCHIVED</option>
+        </select>
+      </div>
+      <p className="text-xs text-slate-500">Hiển thị {pagedPhonemes.length} / {filteredPhonemes.length} phoneme (trang {page}/{totalPages || 1})</p>
 
       {showForm && (
         <Card>
@@ -216,7 +271,7 @@ export default function PhonemeManagement({ phonemes: initialPhonemes }: { phone
               </tr>
             </thead>
             <tbody>
-              {phonemes.map((phoneme) => (
+              {pagedPhonemes.map((phoneme) => (
                 <tr key={phoneme.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3 font-mono font-bold">{phoneme.symbol}</td>
                   <td className="px-4 py-3">{phoneme.name}</td>
@@ -250,6 +305,8 @@ export default function PhonemeManagement({ phonemes: initialPhonemes }: { phone
           </table>
         </div>
       </Card>
+
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

@@ -1,14 +1,11 @@
 "use client";
 
-import { Activity, BookOpen, Users, Volume2 } from "lucide-react";
-import AdminPanel from "./AdminPanel";
-import EmptyTableState from "./EmptyTableState";
+import { BookOpen, Headphones, Users } from "lucide-react";
+import { AdminPanel, EmptyTableState, MetricTile, StatusPill } from "../ui";
 import BarChart from "./BarChart";
+
 import LineChart from "./LineChart";
-import MetricTile from "./MetricTile";
-import RateRow from "./RateRow";
-import StatusPill from "./StatusPill";
-import { formatDate, percent, countActive } from "./admin-utils";
+import { formatDate } from "./admin-utils";
 import type { AdminTab } from "./types";
 import type { AdminDashboardData } from "../AdminDashboardClient";
 
@@ -17,148 +14,68 @@ type OverviewDashboardProps = {
   onSelectTab: (tab: AdminTab) => void;
 };
 
-/** Overview tab — 4 metric tiles + 2 charts + top-exercises panel + system-rates panel + recent users. */
+const TOP_EXERCISES_LIMIT = 10;
+
+/**
+ * Overview tab — implements DECU/ADMIN_DASHBOARD_SPECIFICATION.md §8.2.
+ * Layout: 4 metric tiles → Daily Activity + Top Exercises → Maps Progress → Alerts → Recent users.
+ */
 export default function OverviewDashboard({ data, onSelectTab }: OverviewDashboardProps) {
   const labels = data.dailyActivity.map((item) => item.label);
   const newUsers = data.dailyActivity.map((item) => item.newUsers);
   const attempts = data.dailyActivity.map((item) => item.attempts);
   const latestActivity = data.dailyActivity[data.dailyActivity.length - 1];
-  const activeContent = [
-    countActive(data.exercises),
-    countActive(data.maps),
-    countActive(data.phonemes),
-    countActive(data.wordItems),
-    countActive(data.soundGroups),
-    countActive(data.questionBankItems),
-    countActive(data.minimalPairs),
-    countActive(data.sentenceItems),
-  ].reduce((total, value) => total + value, 0);
-  const contentTotal =
-    data.exercises.length + data.maps.length + data.phonemes.length + data.wordItems.length +
-    data.soundGroups.length + data.questionBankItems.length + data.minimalPairs.length + data.sentenceItems.length;
-  const activeUserRate = percent(data.stats.activeUsers, data.stats.totalUsers);
-  const contentLiveRate = percent(activeContent, contentTotal);
-  const averageScoreRate = Math.min(data.stats.averageScore, 100);
+  const topExercises = data.reports.topExercises.slice(0, TOP_EXERCISES_LIMIT);
   const recentUsers = data.users.slice(0, 5);
 
   return (
     <div className="space-y-5">
-      <dl className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricTile icon={Users} label="Tổng người dùng" value={data.stats.totalUsers} hint={`${data.stats.activeUsers} tài khoản active`} tone="blue" />
-        <MetricTile icon={BookOpen} label="Bài tập" value={data.stats.totalExercises} hint={`${data.stats.completedAttempts} lượt hoàn thành`} tone="emerald" />
-        <MetricTile icon={Volume2} label="File audio" value={data.stats.totalAudioFiles} hint="Dữ liệu từ bảng AudioFile" tone="amber" />
-        <MetricTile icon={Activity} label="Điểm TB 7 ngày" value={`${data.stats.averageScore}%`} hint={`${data.stats.completedAttemptsLast7Days} lượt luyện tập`} tone="purple" />
-      </dl>
+      <MetricTiles
+        stats={data.stats}
+        activeUsers={data.stats.activeUsers}
+        newUsersLast7Days={data.stats.newUsersLast7Days}
+        completedAttempts={data.stats.completedAttempts}
+      />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <AdminPanel
-          title="Người dùng mới"
-          subtitle="7 ngày gần đây"
-          action={
-            <button type="button" onClick={() => onSelectTab("users")}
-              className="rounded-md px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
-              Xem tài khoản
-            </button>
-          }
+          title="Hoạt động theo ngày"
+          subtitle={`Người dùng mới & lượt luyện tập — ${data.rangeDays} ngày gần đây`}
         >
-          <div className="mb-2 flex items-end justify-between gap-4">
-            <div>
-              <div className="text-2xl font-bold text-slate-950">{data.stats.newUsersLast7Days}</div>
-              <p className="text-sm text-slate-600">Tài khoản mới</p>
-            </div>
-            <div className="text-right text-sm">
-              <div className="font-bold text-emerald-700">+{latestActivity?.newUsers ?? 0}</div>
-              <p className="text-slate-500">Hôm nay</p>
-            </div>
+          <div className="mb-2 grid grid-cols-2 gap-4 text-sm">
+            <ActivitySummary
+              label="Người dùng mới"
+              total={data.stats.newUsersLast7Days}
+              today={latestActivity?.newUsers ?? 0}
+            />
+            <ActivitySummary
+              label="Lượt hoàn thành"
+              total={data.stats.completedAttemptsLast7Days}
+              today={latestActivity?.attempts ?? 0}
+            />
           </div>
-          <LineChart labels={labels} values={newUsers} />
+          <LineChart
+            labels={labels}
+            series={[
+              { label: "Người dùng mới", values: newUsers, color: "#2563eb", fillColor: "rgba(37,99,235,0.1)" },
+              { label: "Lượt hoàn thành", values: attempts, color: "#16a34a", fillColor: "rgba(22,163,74,0.1)" },
+            ]}
+          />
         </AdminPanel>
 
         <AdminPanel
-          title="Lượt luyện tập"
-          subtitle="Bài hoàn thành theo ngày"
-          action={
-            <button type="button" onClick={() => onSelectTab("reports")}
-              className="rounded-md px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
-              Xem báo cáo
-            </button>
-          }
+          title="Top bài tập"
+          subtitle={`${TOP_EXERCISES_LIMIT} bài có nhiều lượt hoàn thành nhất trong ${data.rangeDays} ngày`}
         >
-          <div className="mb-2 flex items-end justify-between gap-4">
-            <div>
-              <div className="text-2xl font-bold text-slate-950">{data.stats.completedAttemptsLast7Days}</div>
-              <p className="text-sm text-slate-600">Lượt hoàn thành</p>
-            </div>
-            <div className="text-right text-sm">
-              <div className="font-bold text-emerald-700">{latestActivity?.attempts ?? 0}</div>
-              <p className="text-slate-500">Hôm nay</p>
-            </div>
-          </div>
-          <BarChart labels={labels} values={attempts} />
-        </AdminPanel>
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-        <AdminPanel
-          title="Bài tập nổi bật"
-          subtitle="Sắp xếp theo số lượt hoàn thành trong 7 ngày"
-          action={
-            <button type="button" onClick={() => onSelectTab("exercises")}
-              className="rounded-md px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
-              Quản lý bài tập
-            </button>
-          }
-        >
-          {data.reports.topExercises.length === 0 ? (
+          {topExercises.length === 0 ? (
             <EmptyTableState>Chưa có lượt làm bài trong 7 ngày gần đây.</EmptyTableState>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
-                  <tr>
-                    <th className="px-2 py-2 font-bold">Bài tập</th>
-                    <th className="px-2 py-2 font-bold">Lượt làm</th>
-                    <th className="px-2 py-2 font-bold">Điểm TB</th>
-                    <th className="px-2 py-2 font-bold">Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {data.reports.topExercises.map((exercise) => (
-                    <tr key={exercise.id} className="hover:bg-slate-50">
-                      <td className="px-2 py-3 font-semibold text-slate-900">{exercise.name}</td>
-                      <td className="px-2 py-3 text-slate-700">{exercise.completions}</td>
-                      <td className="px-2 py-3 text-slate-700">{exercise.avgScore}%</td>
-                      <td className="px-2 py-3">
-                        <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
-                          Có dữ liệu
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <BarChart
+              labels={topExercises.map((exercise) => exercise.name)}
+              values={topExercises.map((exercise) => exercise.completions)}
+              horizontal
+            />
           )}
-        </AdminPanel>
-
-        <AdminPanel title="Tổng quan hệ thống" subtitle="Tỷ lệ vận hành từ dữ liệu thật">
-          <div className="space-y-5">
-            <RateRow label="Tài khoản active" value={activeUserRate} tone="emerald" />
-            <RateRow label="Nội dung ACTIVE" value={contentLiveRate} tone="blue" />
-            <RateRow label="Điểm trung bình" value={averageScoreRate} tone="purple" />
-            <div className="grid grid-cols-2 gap-3 border-t border-slate-200 pt-4 text-sm">
-              <button type="button" onClick={() => onSelectTab("questions")}
-                className="rounded-md border border-slate-300 bg-slate-50 px-3 py-3 text-left font-semibold text-slate-800 hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500">
-                {data.questionBankItems.length}
-                <span className="mt-1 block text-xs font-normal text-slate-500">Câu hỏi</span>
-              </button>
-              <button type="button" onClick={() => onSelectTab("badges")}
-                className="rounded-md border border-slate-300 bg-slate-50 px-3 py-3 text-left font-semibold text-slate-800 hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500">
-                {data.badges.length}
-                <span className="mt-1 block text-xs font-normal text-slate-500">Huy hiệu</span>
-              </button>
-            </div>
-          </div>
         </AdminPanel>
       </div>
 
@@ -192,6 +109,36 @@ export default function OverviewDashboard({ data, onSelectTab }: OverviewDashboa
           </div>
         )}
       </AdminPanel>
+    </div>
+  );
+}
+
+function MetricTiles({
+  stats,
+  activeUsers,
+  newUsersLast7Days,
+  completedAttempts,
+}: {
+  stats: AdminDashboardData["stats"];
+  activeUsers: number;
+  newUsersLast7Days: number;
+  completedAttempts: number;
+}) {
+  return (
+    <dl className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <MetricTile icon={Users} label="Tổng người dùng" value={stats.totalUsers} hint={`${activeUsers} active • +${newUsersLast7Days} trong 7 ngày`} tone="blue" />
+      <MetricTile icon={BookOpen} label="Bài tập" value={stats.totalExercises} hint={`${completedAttempts} lượt hoàn thành`} tone="emerald" />
+      <MetricTile icon={Headphones} label="Câu hỏi" value={stats.totalQuestions} hint="Đã gắn vào bài tập" tone="purple" />
+    </dl>
+  );
+}
+
+function ActivitySummary({ label, total, today }: { label: string; total: number; today: number }) {
+  return (
+    <div>
+      <div className="text-2xl font-bold text-slate-950">{total}</div>
+      <p className="text-sm text-slate-600">{label}</p>
+      <p className="mt-1 text-xs text-emerald-700">+{today} hôm nay</p>
     </div>
   );
 }

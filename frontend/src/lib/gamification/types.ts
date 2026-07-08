@@ -32,6 +32,7 @@ export const BADGE_CATEGORIES = [
   "exploration",
   "social",
   "effort",
+  "performance",
 ] as const;
 
 export type BadgeCategory = (typeof BADGE_CATEGORIES)[number];
@@ -73,7 +74,8 @@ export type RewardEvent = {
     | "badge_earned"
     | "quest_complete"
     | "streak_milestone"
-    | "level_up";
+    | "level_up"
+    | "purchase";
   label: string;
   /** New level number (for level_up events) */
   level?: number;

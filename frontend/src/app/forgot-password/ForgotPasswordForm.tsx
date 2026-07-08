@@ -43,7 +43,7 @@ export default function ForgotPasswordForm() {
 
  setMessage(payload.data?.message ?? "Nếu email tồn tại, hệ thống đã tạo liên kết đặt lại mật khẩu.");
  setResetUrl(payload.data?.resetUrl ?? "");
- } catch (requestError) {
+  } catch {
  setError("Đã xảy ra lỗi hệ thống, vui lòng thử lại.");
  } finally {
  setIsLoading(false);

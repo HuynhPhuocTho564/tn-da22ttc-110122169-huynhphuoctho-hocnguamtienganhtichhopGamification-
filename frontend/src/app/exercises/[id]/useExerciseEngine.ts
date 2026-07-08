@@ -132,11 +132,12 @@ export function useExerciseEngine(exercise: ExerciseData, unlocks: EngineUnlocks
         emit({ type: "level_up", level: progress.level, label: `Lên cấp ${progress.level}!`, icon: "🎯" });
         previousLevelRef.current = progress.level;
       }
-      if (badges && Array.isArray(badges)) {
-        for (const badge of badges) {
-          emit({ type: "badge_earned", badgeName: badge.name, label: `Huy hiệu: ${badge.name}`, icon: "🏆" });
-        }
-      }
+      // Badge notifications disabled during exercises — user doesn't want to see them mid-practice
+      // if (badges && Array.isArray(badges)) {
+      //   for (const badge of badges) {
+      //     emit({ type: "badge_earned", badgeName: badge.name, label: `Huy hiệu: ${badge.name}`, icon: "🏆" });
+      //   }
+      // }
 
       // UX-1: Near-miss notification — check if any badges are now at ≥80% (Goal-Gradient)
       try {

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { TOPICS } from "../../../prisma/lesson-catalog";
 import { type LearningMapUI, type TopicUI } from "./types/island";
 import IslandMapView from "./components/IslandMapView";
+import { ISLAND_BIOMES } from "./constants/islands";
 
 export const dynamic = "force-dynamic";
 
@@ -113,9 +114,30 @@ export default async function LearningMapPage() {
     };
   });
 
+  // Merge stress + linking topics into ONE island "Trọng âm & Nối âm"
+  // Also filter out topic-4-stress-connected (empty) since merged topic replaces it
+  const STRESS_LINKING_IDS = ["topic-4-stress-connected", "topic-5-stress", "topic-6-linking"];
+  const stressTopics = topics.filter((t) => STRESS_LINKING_IDS.includes(t.id));
+  const otherTopics = topics.filter((t) => !STRESS_LINKING_IDS.includes(t.id));
+
+  if (stressTopics.length > 0) {
+    const mergedMaps = stressTopics.flatMap((t) => t.maps);
+    mergedMaps.sort((a, b) => a.id.localeCompare(b.id));
+    otherTopics.push({
+      id: "topic-4-stress-connected",
+      name: "Trọng âm & Nối âm",
+      description: "4 nhóm đặc thù: Word Stress, Weak Forms, Linking, Assimilation",
+      maps: mergedMaps,
+    });
+  }
+
+  // Re-sort by original orderIndex (1=nguyên âm, 2=phụ âm, 3=minimal pairs, 4=stress+linking)
+  const ORDER = ["topic-1-vowels", "topic-2-consonants", "topic-3-minimal-pairs-hard", "topic-4-stress-connected"];
+  otherTopics.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+
   // Calculate lock status based on prerequisite topic completion (100% rule: count-based, không dùng %)
-  const topicById = new Map(topics.map((t) => [t.id, t]));
-  for (const topicUI of topics) {
+  const topicById = new Map(otherTopics.map((t) => [t.id, t]));
+  for (const topicUI of otherTopics) {
     const topicDef = TOPICS.find((t) => t.id === topicUI.id);
     if (topicDef && topicDef.unlockThresholdPercent > 0) {
       // Find prerequisite topic (the one with orderIndex - 1)
@@ -143,7 +165,7 @@ export default async function LearningMapPage() {
           // Nếu prereq không có exercise → unlocked (total = 0 → unlocked, không có yêu cầu).
           topicUI.isLocked = totalExercises > 0 && prereqStats.completed < totalExercises;
           topicUI.completionPercent = percent;
-          topicUI.prerequisiteName = prereqDef.name;
+          topicUI.prerequisiteName = ISLAND_BIOMES[`topic-${prereqDef.orderIndex}`]?.name ?? prereqDef.name;
           // Mastery fields cho ProgressRing (Chunk 3 — IslandNode):
           topicUI.totalExercises = totalExercises;
           topicUI.countBestScore90Plus = countBestScore90Plus;
@@ -152,5 +174,5 @@ export default async function LearningMapPage() {
     }
   }
 
-  return <IslandMapView topics={topics} />;
+  return <IslandMapView topics={otherTopics} />;
 }

@@ -1,11 +1,12 @@
 import AdminDashboardClient, { type AdminDashboardData } from "@/components/admin/AdminDashboardClient";
-import type { AdminPhoneme } from "@/components/admin/PhonemeManagement";
 import type { AdminWordItem } from "@/components/admin/WordItemManagement";
 import type { AdminSoundGroup } from "@/components/admin/SoundGroupManagement";
 import type { AdminQuestionBankItem } from "@/components/admin/QuestionBankManagement";
 import type { AdminMinimalPair } from "@/components/admin/MinimalPairManagement";
 import type { AdminSentenceItem } from "@/components/admin/SentenceItemManagement";
 import type { AdminBadge } from "@/components/admin/BadgeManagement";
+import type { ShopItemCategory, ShopItemStatus } from "@/components/admin/ShopManagement";
+import type { LeaderboardTier } from "@/components/admin/LeaderboardManagement";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -30,7 +31,11 @@ function formatDayLabel(value: Date) {
   }).format(value);
 }
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: { from?: string; to?: string };
+}) {
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/login?callbackUrl=/admin");
@@ -41,13 +46,16 @@ export default async function AdminDashboardPage() {
   }
 
   const todayStart = startOfLocalDay(new Date());
-  const sevenDaysAgo = new Date(todayStart.getTime() - (DAILY_ACTIVITY_WINDOW_DAYS - 1) * DAY_IN_MS);
+  const defaultFrom = new Date(todayStart.getTime() - 6 * DAY_IN_MS);
+  const rangeStart = searchParams?.from ? startOfLocalDay(new Date(searchParams.from)) : defaultFrom;
+  const rangeEnd = searchParams?.to ? startOfLocalDay(new Date(searchParams.to + "T23:59:59")) : new Date(todayStart.getTime() + DAY_IN_MS);
+  const rangeDays = Math.max(1, Math.round((rangeEnd.getTime() - rangeStart.getTime()) / DAY_IN_MS) + 1);
 
   const [
     totalUsers,
     activeUsers,
     totalExercises,
-    totalAudioFiles,
+    totalQuestions,
     completedAttempts,
     users,
     exercises,
@@ -66,11 +74,17 @@ export default async function AdminDashboardPage() {
     minimalPairs,
     sentenceItems,
     badgesRaw,
+    mapProgressUserCounts,
+    spinWheelLogsRaw,
+    dailyQuestsRaw,
+    leaderboardEntriesRaw,
+    seasonTransitionsRaw,
+    shopItemsRaw,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { status: "ACTIVE" } }),
     prisma.exercise.count(),
-    prisma.audioFile.count(),
+    prisma.question.count(),
     prisma.exerciseAttempt.count({ where: { status: "COMPLETED" } }),
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
@@ -119,7 +133,7 @@ export default async function AdminDashboardPage() {
     prisma.exerciseAttempt.findMany({
       where: {
         createdAt: {
-          gte: sevenDaysAgo,
+          gte: rangeStart,
         },
       },
       select: {
@@ -136,7 +150,7 @@ export default async function AdminDashboardPage() {
     prisma.user.findMany({
       where: {
         createdAt: {
-          gte: sevenDaysAgo,
+          gte: rangeStart,
         },
       },
       select: {
@@ -146,7 +160,7 @@ export default async function AdminDashboardPage() {
     prisma.user.count({
       where: {
         createdAt: {
-          gte: sevenDaysAgo,
+          gte: rangeStart,
         },
       },
     }),
@@ -174,12 +188,22 @@ export default async function AdminDashboardPage() {
     }),
     prisma.learningMap.findMany({
       orderBy: { name: "asc" },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        requirement: true,
+        status: true,
+        subcategory: true,
+        unlockThresholdPercent: true,
+        requiredMapId: true,
         _count: {
           select: {
             exercises: true,
             progresses: true,
           },
+        },
+        requiredMap: {
+          select: { id: true, name: true },
         },
       },
     }),
@@ -233,6 +257,41 @@ export default async function AdminDashboardPage() {
         _count: { select: { userBadges: true } },
       },
     }),
+    prisma.progress.groupBy({
+      by: ["mapId"],
+      _count: { _all: true },
+    }),
+    prisma.spinWheelLog.findMany({
+      orderBy: { spunAt: "desc" },
+      take: 50,
+      include: {
+        user: { select: { username: true } },
+      },
+    }),
+    prisma.dailyQuest.findMany({
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      take: 200,
+      include: {
+        user: { select: { username: true } },
+      },
+    }),
+    prisma.leaderboard.findMany({
+      orderBy: [{ score: "desc" }],
+      take: 200,
+      include: {
+        user: { select: { username: true, currentTier: true } },
+      },
+    }),
+    prisma.seasonTransitionLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: {
+        user: { select: { username: true } },
+      },
+    }),
+    prisma.shopItem.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    }),
   ]);
 
   const completedAttemptsLast7Days = recentAttempts.length;
@@ -240,8 +299,8 @@ export default async function AdminDashboardPage() {
     recentAttempts.length > 0
       ? Math.round(recentAttempts.reduce((total, attempt) => total + attempt.score, 0) / recentAttempts.length)
       : 0;
-  const dailyActivity = Array.from({ length: DAILY_ACTIVITY_WINDOW_DAYS }, (_, index) => {
-    const date = new Date(sevenDaysAgo.getTime() + index * DAY_IN_MS);
+  const dailyActivity = Array.from({ length: rangeDays }, (_, index) => {
+    const date = new Date(rangeStart.getTime() + index * DAY_IN_MS);
 
     return {
       key: toDayKey(date),
@@ -285,17 +344,85 @@ export default async function AdminDashboardPage() {
     .sort((first, second) => second.completions - first.completions)
     .slice(0, 5);
 
+  // Maps progress = share of active users that have started each map.
+  const mapProgressLookup = new Map(
+    mapProgressUserCounts.map((row) => [row.mapId, row._count._all])
+  );
+  const mapsProgress = maps
+    .map((map) => {
+      const startedUsers = mapProgressLookup.get(map.id) ?? 0;
+      const completionRate = activeUsers > 0
+        ? Math.min(100, Math.round((startedUsers / activeUsers) * 100))
+        : 0;
+      return {
+        id: map.id,
+        name: map.name,
+        status: map.status,
+        startedUsers,
+        completionRate,
+        exerciseCount: map._count.exercises,
+        requiredMapId: map.requiredMapId,
+        requiredMapName: map.requiredMap?.name ?? null,
+        unlockThresholdPercent: map.unlockThresholdPercent,
+      };
+    })
+    .sort((first, second) => second.completionRate - first.completionRate);
+
   const data: AdminDashboardData = {
+    rangeDays,
     stats: {
       totalUsers,
       activeUsers,
       totalExercises,
-      totalAudioFiles,
+      totalQuestions,
       completedAttempts,
       newUsersLast7Days,
       completedAttemptsLast7Days,
-      averageScore,
     },
+    spinWheelLogs: spinWheelLogsRaw.map((log) => ({
+      id: log.id,
+      userId: log.userId,
+      username: log.user.username,
+      prize: log.prize,
+      prizeValue: log.prizeValue,
+      spunAt: log.spunAt.toISOString(),
+    })),
+    dailyQuests: dailyQuestsRaw.map((quest) => ({
+      id: quest.id,
+      userId: quest.userId,
+      username: quest.user.username,
+      date: quest.date.toISOString().slice(0, 10),
+      questType: quest.questType,
+      progress: quest.progress,
+      target: quest.target,
+      completed: quest.completed,
+      claimedAt: quest.claimedAt ? quest.claimedAt.toISOString() : null,
+    })),
+    leaderboard: leaderboardEntriesRaw.map((entry) => ({
+      id: entry.id,
+      userId: entry.userId,
+      username: entry.user.username,
+      // currentTier is stored as String in DB; cast to the strict union.
+      // TODO: add a runtime validator when migration changes the column to enum.
+      tier: entry.user.currentTier as LeaderboardTier,
+      score: entry.score,
+      correctAnswers: entry.correctAnswers,
+      completedExercises: entry.completedExercises,
+      type: entry.type as "tuan" | "thang",
+      period: entry.period,
+      updatedAt: entry.updatedAt.toISOString(),
+    })),
+    seasonTransitions: seasonTransitionsRaw.map((row) => ({
+      id: row.id,
+      username: row.user.username,
+      period: row.period,
+      fromTier: row.fromTier as "bronze" | "silver" | "gold" | "diamond" | "legend",
+      toTier: row.toTier as "bronze" | "silver" | "gold" | "diamond" | "legend",
+      action: row.action as "promoted" | "demoted" | "stayed",
+      rankInTier: row.rankInTier,
+      gemsEarned: row.gemsEarned,
+      createdAt: row.createdAt.toISOString(),
+    })),
     dailyActivity: dailyActivity.map(({ label, newUsers, attempts }) => ({
       label,
       newUsers,
@@ -338,14 +465,24 @@ export default async function AdminDashboardPage() {
       exerciseCount: level._count.exercises,
       soundGroupCount: level._count.soundGroups,
     })),
-    maps: maps.map((map) => ({
-      id: map.id,
-      name: map.name,
-      requirement: map.requirement,
-      status: map.status,
-      exerciseCount: map._count.exercises,
-      progressCount: map._count.progresses,
-    })),
+    maps: maps.map((map) => {
+      // Derive topicId from exercises belonging to this map
+      const mapExercise = exercises.find((e) => e.map.id === map.id);
+      const topicId = mapExercise?.topic.id ?? "";
+      return {
+        id: map.id,
+        name: map.name,
+        requirement: map.requirement,
+        status: map.status,
+        exerciseCount: map._count.exercises,
+        progressCount: map._count.progresses,
+        requiredMapId: map.requiredMapId,
+        requiredMapName: map.requiredMap?.name ?? null,
+        unlockThresholdPercent: map.unlockThresholdPercent,
+        subcategory: map.subcategory,
+        topicId,
+      };
+    }),
     exerciseOptions: {
       topics: topics.map((topic) => ({ id: topic.id, name: topic.name })),
       levels: levels.map((level) => ({ id: level.id, name: level.name })),
@@ -424,12 +561,23 @@ export default async function AdminDashboardPage() {
       type: b.type,
       userCount: b._count.userBadges,
     })),
+    shopItems: shopItemsRaw.map((item) => ({
+      id: item.id,
+      key: item.key,
+      name: item.name,
+      description: item.description,
+      cost: item.cost,
+      category: item.category as ShopItemCategory,
+      sortOrder: item.sortOrder,
+      status: item.status as ShopItemStatus,
+    })),
     reports: {
       newUsersLast7Days,
       completedAttemptsLast7Days,
       averageScore,
       topExercises,
     },
+    mapsProgress,
   };
 
   return (

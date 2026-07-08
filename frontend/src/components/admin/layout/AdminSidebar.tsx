@@ -1,18 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, ShieldCheck, X } from "lucide-react";
+import { ShieldCheck, X } from "lucide-react";
 import { classNames, getInitials } from "./admin-utils";
 import type { AdminIdentity, AdminTab, SidebarSection } from "./types";
+import DropdownMenu from "./DropdownMenu";
+import { gamificationDropdown } from "./gamification-dropdown";
 
 /**
  * Resolve which top-level sidebar item should be highlighted for a given tab.
- * Groups content sub-tabs (phonemes/words/soundgroups/minimalpairs/sentences)
- * under the "topics" entry, and "questions" under "exercises".
+ *
+ * Implements PLAN/ADMIN_DASHBOARD_new.md — two sidebar items are parent
+ * containers, so child tabs must roll up to them:
+ *   1. "Nội dung" sidebar item id is `map_vowels` (the first map tab); all
+ *      4 map tabs map to it so the sidebar item stays highlighted.
+ *   2. "Gamification" sidebar item id is `badges` (the first dropdown item);
+ *      every gamification dropdown tab maps to it.
+ *   3. Legacy tab ids still referenced internally → their current equivalents.
  */
 function getSidebarActiveTab(tab: AdminTab): AdminTab {
-  if (["phonemes", "words", "soundgroups", "minimalpairs", "sentences"].includes(tab)) return "topics";
-  if (tab === "questions") return "exercises";
+  // Map tabs → "Nội dung" sidebar item (map_vowels)
+  if (["map_vowels", "map_consonants", "map_minimal_pairs", "map_stress_linking"].includes(tab)) {
+    return "map_vowels";
+  }
+
+  // Gamification dropdown tabs → "Gamification" sidebar item (badges)
+  if (
+    ["badges", "xp_levels", "gems_economy", "shop_items", "lucky_wheel", "streaks_quests", "leaderboard"].includes(tab)
+  ) {
+    return "badges";
+  }
+
   return tab;
 }
 
@@ -79,7 +97,22 @@ export default function AdminSidebar({
                   {section.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = sidebarActiveTab === item.id;
+                    
+                    // Dropdown type: render expandable menu
+                    if (item.type === "dropdown") {
+                      return (
+                        <DropdownMenu
+                          key={item.id}
+                          title={item.name}
+                          icon={Icon}
+                          items={gamificationDropdown}
+                          activeItem={activeTab}
+                          onItemSelect={onSelectTab}
+                        />
+                      );
+                    }
 
+                    // Default & tabs type: render as button
                     return (
                       <button
                         key={item.id}

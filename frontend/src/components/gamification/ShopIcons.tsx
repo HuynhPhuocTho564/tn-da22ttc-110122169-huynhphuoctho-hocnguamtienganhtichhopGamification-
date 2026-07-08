@@ -114,6 +114,33 @@ export function IconFrameFire({ size = 28, className }: ShopIconProps): React.Re
   );
 }
 
+/** Viền Avatar Bạc — Silver frame with subtle shine */
+export function IconFrameSilver({ size = 28, className }: ShopIconProps): React.ReactElement {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className}>
+      <rect x="10" y="10" width="44" height="44" rx="6" stroke="currentColor" strokeWidth="4" fill="currentColor" fillOpacity="0.1" />
+      <rect x="14" y="14" width="36" height="36" rx="4" stroke="currentColor" strokeWidth="2" strokeDasharray="4 2" fill="none" />
+      <line x1="10" y1="10" x2="20" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="10" y1="10" x2="10" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Viền Avatar Kim Cương — Diamond frame with sparkle */
+export function IconFrameDiamond({ size = 28, className }: ShopIconProps): React.ReactElement {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className}>
+      <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" strokeWidth="4" fill="currentColor" fillOpacity="0.1" />
+      <rect x="12" y="12" width="40" height="40" rx="3" stroke="currentColor" strokeWidth="2" fill="none" />
+      <circle cx="16" cy="16" r="2" fill="currentColor" fillOpacity="0.6" />
+      <circle cx="48" cy="16" r="2" fill="currentColor" fillOpacity="0.6" />
+      <circle cx="16" cy="48" r="2" fill="currentColor" fillOpacity="0.6" />
+      <circle cx="48" cy="48" r="2" fill="currentColor" fillOpacity="0.6" />
+      <path d="M32 8 L34 12 L30 12 Z" fill="currentColor" fillOpacity="0.4" />
+    </svg>
+  );
+}
+
 /** Danh Hiệu Học Giả — Graduation cap */
 export function IconScholar({ size = 28, className }: ShopIconProps): React.ReactElement {
   return (
@@ -147,10 +174,10 @@ export const SHOP_ICON_MAP: Record<string, React.FC<ShopIconProps>> = {
   hint_token: IconLightbulb,
   streak_freeze: IconFreeze,
   second_chance: IconRetry,
+  frame_silver: IconFrameSilver,
   frame_gold: IconFrameGold,
+  frame_diamond: IconFrameDiamond,
   frame_fire: IconFrameFire,
-  title_scholar: IconScholar,
-  title_champion: IconCrown,
 } as const;
 
 /** Category-based icon colors (ui-color-harmony: semantic by function) */

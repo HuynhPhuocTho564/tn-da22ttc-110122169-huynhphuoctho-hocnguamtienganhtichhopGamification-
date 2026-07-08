@@ -28,9 +28,11 @@ const NAV_ICONS: Record<string, typeof Home> = {
 };
 
 type NavbarUser = {
- username: string;
- avatarUrl: string;
- gems: number;
+  username: string;
+  avatarUrl: string;
+  gems: number;
+  equippedFrame?: "frame_silver" | "frame_gold" | "frame_diamond" | "frame_fire" | null;
+  purchasedItemIds?: string[];
 };
 
 type NavbarClientProps = {
@@ -54,55 +56,63 @@ function navLinkClass(isActive: boolean) {
 }
 
 function mobileLinkClass(isActive: boolean) {
- return [
- "block rounded-lg px-4 py-3 text-lg font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500",
- isActive ? "bg-primary-50 text-primary-700 " : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 ",
- ].join(" ");
+  return [
+    "block rounded-lg px-4 py-3 text-lg font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500",
+    isActive ? "bg-primary-50 text-primary-700 " : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 ",
+  ].join(" ");
 }
 
+/** Frame ring styles for navbar avatar */
+const NAVBAR_FRAME_STYLES: Record<string, string> = {
+  frame_silver: "ring-2 ring-slate-400",
+  frame_gold: "ring-2 ring-amber-400",
+  frame_diamond: "ring-2 ring-cyan-400",
+  frame_fire: "ring-2 ring-orange-500",
+};
+
 export default function NavbarClient({ links, user, isAdmin }: NavbarClientProps) {
- const pathname = usePathname();
- const [isMobileOpen, setIsMobileOpen] = useState(false);
- const [isDropdownOpen, setIsDropdownOpen] = useState(false);
- const dropdownRef = useRef<HTMLDivElement>(null);
- const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/forgot-password" || pathname === "/reset-password";
- const isAdminPage = pathname.startsWith("/admin");
+  const pathname = usePathname();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/forgot-password" || pathname === "/reset-password";
+  const isAdminPage = pathname.startsWith("/admin");
+  const isExerciseRoute = pathname.startsWith("/exercises/");
 
- useEffect(() => {
- setIsMobileOpen(false);
- }, [pathname]);
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname]);
 
- // Close dropdown when clicking outside
- useEffect(() => {
- function handleClickOutside(event: MouseEvent) {
- if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
- setIsDropdownOpen(false);
- }
- }
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
 
- if (isDropdownOpen) {
- document.addEventListener("mousedown", handleClickOutside);
- return () => document.removeEventListener("mousedown", handleClickOutside);
- }
- }, [isDropdownOpen]);
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isDropdownOpen]);
 
- // Close dropdown on ESC key
- useEffect(() => {
- function handleEscape(event: KeyboardEvent) {
- if (event.key === "Escape") {
- setIsDropdownOpen(false);
- }
- }
+  // Close dropdown on ESC key
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    }
 
- if (isDropdownOpen) {
- document.addEventListener("keydown", handleEscape);
- return () => document.removeEventListener("keydown", handleEscape);
- }
- }, [isDropdownOpen]);
+    if (isDropdownOpen) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [isDropdownOpen]);
 
- if (isAdminPage) {
- return null;
- }
+  // Focus Mode: hide navbar during exercises (MUST be after all hooks)
+  if (isExerciseRoute || isAdminPage) return null;
 
  return (
  <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white ">
@@ -165,7 +175,7 @@ export default function NavbarClient({ links, user, isAdmin }: NavbarClientProps
 
  {user ? (
  <>
- <DiamondsDisplay initialGems={user.gems} />
+ <DiamondsDisplay initialGems={user.gems} purchasedItemIds={user.purchasedItemIds} />
  <div ref={dropdownRef} className="relative">
  <button
  type="button"
@@ -175,12 +185,12 @@ export default function NavbarClient({ links, user, isAdmin }: NavbarClientProps
  aria-expanded={isDropdownOpen}
  className="flex min-h-11 items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 focus-visible:ring-offset-2 "
  >
- <img
- className="h-8 w-8 rounded-full bg-neutral-200 "
- src={user.avatarUrl}
- alt=""
- aria-hidden="true"
- />
+  <img
+  className={`h-8 w-8 rounded-full bg-neutral-200 ${user.equippedFrame ? NAVBAR_FRAME_STYLES[user.equippedFrame] ?? "" : ""}`}
+  src={user.avatarUrl}
+  alt=""
+  aria-hidden="true"
+  />
  <span className="hidden text-sm font-semibold text-neutral-700 lg:inline ">{user.username}</span>
  <ChevronDown
  aria-hidden="true"
@@ -309,12 +319,12 @@ export default function NavbarClient({ links, user, isAdmin }: NavbarClientProps
  href="/dashboard"
  className="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 "
  >
- <img
- className="h-9 w-9 rounded-full bg-neutral-200 "
- src={user.avatarUrl}
- alt=""
- aria-hidden="true"
- />
+  <img
+  className={`h-9 w-9 rounded-full bg-neutral-200 ${user.equippedFrame ? NAVBAR_FRAME_STYLES[user.equippedFrame] ?? "" : ""}`}
+  src={user.avatarUrl}
+  alt=""
+  aria-hidden="true"
+  />
  <span className="font-semibold text-neutral-800 ">{user.username}</span>
  </Link>
  <SignOutButton className="w-full justify-start px-4" />

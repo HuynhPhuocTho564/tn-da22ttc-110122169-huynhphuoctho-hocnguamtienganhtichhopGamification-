@@ -1,11 +1,13 @@
 /**
  * Tab group definitions for AdminSubTabs.
  *
- * Three groups of related sub-tabs are rendered inside the content/exercise/gamification
- * sections of the admin dashboard.
+ * Three groups of related sub-tabs are rendered inside the content/exercise
+ * sections of the admin dashboard. The gamification group was removed in
+ * PLAN/ADMIN_DASHBOARD_new.md cleanup — gamification tabs are now reached via
+ * the sidebar dropdown, not as in-page sub-tabs.
  */
 
-import { Award, BookOpen, ClipboardList, Database, FileQuestion, FolderTree, Gem, Gift, Layers, ListChecks, Mic, Sparkles, TrendingUp } from "lucide-react";
+import { ClipboardList, Database, FileQuestion, FolderTree, Layers, ListChecks, Mic } from "lucide-react";
 import type { SidebarItem } from "./types";
 
 export const contentTabs: Array<Pick<SidebarItem, "id" | "name" | "icon">> = [
@@ -18,14 +20,5 @@ export const contentTabs: Array<Pick<SidebarItem, "id" | "name" | "icon">> = [
 ];
 
 export const exerciseTabs: Array<Pick<SidebarItem, "id" | "name" | "icon">> = [
-  { id: "exercises", name: "Bài tập", icon: BookOpen },
   { id: "questions", name: "Ngân hàng câu", icon: FileQuestion },
-];
-
-export const gamificationTabs: Array<Pick<SidebarItem, "id" | "name" | "icon">> = [
-  { id: "badges", name: "Huy hiệu", icon: Award },
-  { id: "xp_level", name: "XP & Cấp độ", icon: TrendingUp },
-  { id: "gems_streak", name: "Gems & Streak", icon: Gem },
-  { id: "daily_quest", name: "Daily Quest", icon: ListChecks },
-  { id: "lucky_wheel", name: "Vòng quay may mắn", icon: Gift },
 ];

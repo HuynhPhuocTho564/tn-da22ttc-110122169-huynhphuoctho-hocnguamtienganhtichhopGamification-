@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const description = readOptionalString(body, "description", 1000);
     const image = readOptionalString(body, "image", 500);
     const condition = readOptionalString(body, "condition", 1000);
-    const type = typeof body.type === "string" ? body.type : "PERMANENT";
+    const type = typeof body.type === "string" ? body.type : "COMMON";
 
     if (!name) return apiFailure("VALIDATION_ERROR", "name là bắt buộc", 400);
 

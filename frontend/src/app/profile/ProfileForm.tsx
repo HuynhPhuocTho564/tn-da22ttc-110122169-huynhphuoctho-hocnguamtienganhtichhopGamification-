@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import { AvatarWithFrame, type CosmeticFrame } from "@/components/ui/AvatarWithFrame";
 
 type User = {
   id: string;
@@ -12,6 +13,7 @@ type User = {
   avatarUrl: string;
   level: number;
   xp: number;
+  equippedFrame?: CosmeticFrame;
 };
 
 type Props = {
@@ -198,10 +200,11 @@ export default function ProfileForm({ user }: Props) {
       {activeTab === "profile" && (
         <Card padding="lg">
           <div className="mb-6 flex items-center gap-4">
-            <img
-              src={user.avatarUrl}
-              alt={user.username}
-              className="h-20 w-20 rounded-full bg-neutral-200"
+            <AvatarWithFrame
+              username={user.username}
+              avatarUrl={user.avatarUrl}
+              size="lg"
+              frame={user.equippedFrame ?? null}
             />
             <div>
               <h2 className="text-2xl font-bold text-neutral-900">{user.username}</h2>

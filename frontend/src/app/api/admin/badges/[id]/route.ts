@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { apiFailure, apiSuccess, readJsonObject, readNullableString, readOptionalString, readRequiredString, requireAdminSession } from "@/lib/admin-api";
+import { apiFailure, apiSuccess, readJsonObject, readNullableString, readRequiredString, requireAdminSession } from "@/lib/admin-api";
 
 type RouteContext = { params: Promise<{ id: string }> };
 

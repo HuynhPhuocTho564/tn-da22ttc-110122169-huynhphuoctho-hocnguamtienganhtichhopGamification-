@@ -9,7 +9,21 @@ import type { LucideIcon } from "lucide-react";
 export type AdminTab =
   | "overview"
   | "users"
-  | "exercises"
+  | "reports"
+  // Maps (4 horizontal tabs; map_stress_linking has nested sub-tabs)
+  | "map_vowels"
+  | "map_consonants"
+  | "map_minimal_pairs"
+  | "map_stress_linking"
+  // Gamification (5 dropdown items per PLAN/ADMIN_DASHBOARD_new.md)
+  | "badges"
+  | "xp_levels"
+  | "gems_economy"
+  | "shop_items"
+  | "streaks_quests"
+  | "leaderboard"
+  | "lucky_wheel"
+  // Content resource tabs (still routable internally; not in sidebar)
   | "topics"
   | "phonemes"
   | "words"
@@ -17,13 +31,7 @@ export type AdminTab =
   | "questions"
   | "minimalpairs"
   | "sentences"
-  | "audio"
-  | "badges"
-  | "xp_level"
-  | "gems_streak"
-  | "daily_quest"
-  | "lucky_wheel"
-  | "reports";
+  | "audio";
 
 export type AdminIdentity = {
   name: string;
@@ -36,9 +44,15 @@ export type SidebarItem = {
   name: string;
   description: string;
   icon: LucideIcon;
+  type?: "default" | "tabs" | "dropdown"; // Determines navigation behavior
 };
 
 export type SidebarSection = {
   label: string;
   items: SidebarItem[];
+};
+
+export type TabMeta = {
+  title: string;
+  description: string;
 };

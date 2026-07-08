@@ -5,7 +5,6 @@ import {
   apiSuccess,
   CONTENT_STATUSES,
   readJsonObject,
-  readOptionalStatus,
   readOptionalString,
   readRequiredString,
   readStatus,

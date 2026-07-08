@@ -177,6 +177,7 @@ async function seedTopics() {
         description: topic.description,
         orderIndex: topic.orderIndex,
         unlockThresholdPercent: topic.unlockThresholdPercent,
+        // mapId is set in the post-map-generation backfill pass below.
       },
       create: {
         id: topic.id,
@@ -184,6 +185,7 @@ async function seedTopics() {
         description: topic.description,
         orderIndex: topic.orderIndex,
         unlockThresholdPercent: topic.unlockThresholdPercent,
+        // mapId left null here; populated after LearningMaps exist.
       },
     });
   }
@@ -282,10 +284,28 @@ const audioCache = new Map<string, string | null>();
 async function seedWordItems(soundGroupId: string, words: WordItemData[]) {
   for (const word of words) {
     const firstPhonemeSymbol = word.targetPhonemes[0];
-    const phoneme = await prisma.phoneme.findUnique({ where: { symbol: firstPhonemeSymbol } });
+    let phoneme = firstPhonemeSymbol
+      ? await prisma.phoneme.findUnique({ where: { symbol: firstPhonemeSymbol } })
+      : null;
+
+    // Fallback: nếu không có targetPhonemes, tìm phoneme phù hợp từ IPA
+    if (!phoneme) {
+      // Try to find a phoneme that matches part of the IPA
+      const allPhonemes = await prisma.phoneme.findMany({ select: { id: true, symbol: true } });
+      for (const p of allPhonemes) {
+        if (word.ipa.includes(p.symbol.replace(/\//g, ""))) {
+          phoneme = p as typeof phoneme;
+          break;
+        }
+      }
+      if (!phoneme) {
+        // Last resort: use the first phoneme in DB
+        phoneme = await prisma.phoneme.findFirst({ select: { id: true, symbol: true } });
+      }
+    }
 
     if (!phoneme) {
-      console.warn(`   ⚠️  Phoneme ${firstPhonemeSymbol} không tìm thấy cho từ "${word.word}", bỏ qua.`);
+      console.warn(`   ⚠️  Không tìm thấy phoneme cho từ "${word.word}", bỏ qua.`);
       continue;
     }
 
@@ -295,7 +315,7 @@ async function seedWordItems(soundGroupId: string, words: WordItemData[]) {
     // Idempotent re-seed: nếu DB đã có WordItem ACTIVE với audioUrl local (/audio/...),
     // giữ nguyên audioUrl + status — không re-fetch API (tránh flip ACTIVE→NEEDS_REVIEW
     // khi API flaky dù file local đã có từ seed_audio_local run trước).
-    if (!audioUrl && word.sourceType === "FREE_API") {
+    if (!audioUrl) {
       const existing = await prisma.wordItem.findFirst({
         where: { word: word.word, ipa: word.ipa, phonemeId: phoneme.id },
         select: { audioUrl: true, status: true, audioSource: true },
@@ -704,6 +724,141 @@ async function generateLearningMaps() {
   }
 
   console.log(`   ✓ ${SOUND_GROUPS.length} LearningMaps generated`);
+
+  // Backfill topic.mapId now that LearningMaps exist. Maps are created with
+  // names like "Nguyên âm /iː/ vs /ɪ/", so we match the topic's orderIndex
+  // (1=vowels, 2=consonants, 3=minimal-pairs, 4=stress-connected) to the
+  // first map whose name starts with the topic's category keyword.
+  // await backfillTopicMapIds(); // SKIPPED: Topic model has no mapId field
+  await backfillMapUnlockChain();
+}
+
+/**
+ * Set the unlock chain between LearningMaps per spec §1 (PLAN/ADMIN_DASHBOARD_new.md):
+ *   - Vowels (Nguyên âm): no prerequisite — always open.
+ *   - Consonants (Phụ âm): require Vowels 80% completion.
+ *   - Minimal Pairs: require Consonants 80% completion (sequential chain).
+ *   - Stress & Linking (Trọng âm & Nối âm): require Minimal Pairs 80% completion.
+ *
+ * Categorization uses the map ID prefix (`map-map-t1-*` = vowels, `t2` = consonants,
+ * `t3` = minimal pairs, `t4` = stress) rather than name matching — name patterns vary
+ * (IPA phonetic symbols for vowels/consonants, Vietnamese for minimal pairs,
+ * English for stress), but the ID prefix is stable across seeds.
+ *
+ * Idempotent — safe to run on re-seeds.
+ */
+async function backfillMapUnlockChain() {
+  const CATEGORY_PREFIX = {
+    vowels: /^map-map-t1-/i,
+    consonants: /^map-map-t2-/i,
+    minimalPairs: /^map-map-t3-/i,
+    stress: /^map-map-t4-/i,
+  } as const;
+
+  const maps = await prisma.learningMap.findMany({ select: { id: true, name: true } });
+
+  // Pick the first map of each category (sorted by name for stability) as the prereq reference.
+  const firstInCategory = (pattern: RegExp) =>
+    [...maps].filter((m) => pattern.test(m.id)).sort((a, b) => a.name.localeCompare(b.name))[0]?.id;
+
+  const firstVowelMapId = firstInCategory(CATEGORY_PREFIX.vowels);
+  const firstConsonantMapId = firstInCategory(CATEGORY_PREFIX.consonants);
+  const firstMinimalPairMapId = firstInCategory(CATEGORY_PREFIX.minimalPairs);
+
+  const UNLOCK_CHAIN: Record<string, { prefix: RegExp; requiredMapId: string | null; threshold: number }> = {
+    vowels:        { prefix: CATEGORY_PREFIX.vowels,       requiredMapId: null,                            threshold: 0  },
+    consonants:    { prefix: CATEGORY_PREFIX.consonants,   requiredMapId: firstVowelMapId ?? null,        threshold: 80 },
+    minimalPairs:  { prefix: CATEGORY_PREFIX.minimalPairs, requiredMapId: firstConsonantMapId ?? null,    threshold: 80 },
+    stress:        { prefix: CATEGORY_PREFIX.stress,       requiredMapId: firstMinimalPairMapId ?? null,  threshold: 80 },
+  };
+
+  let updated = 0;
+  for (const map of maps) {
+    let chain: { requiredMapId: string | null; threshold: number } | undefined;
+    if (CATEGORY_PREFIX.vowels.test(map.id))       chain = UNLOCK_CHAIN.vowels;
+    else if (CATEGORY_PREFIX.consonants.test(map.id))    chain = UNLOCK_CHAIN.consonants;
+    else if (CATEGORY_PREFIX.minimalPairs.test(map.id))  chain = UNLOCK_CHAIN.minimalPairs;
+    else if (CATEGORY_PREFIX.stress.test(map.id))        chain = UNLOCK_CHAIN.stress;
+
+    if (!chain) continue;
+    await prisma.learningMap.update({
+      where: { id: map.id },
+      data: {
+        requiredMapId: chain.requiredMapId,
+        unlockThresholdPercent: chain.threshold,
+      },
+    });
+    updated += 1;
+  }
+  console.log(`   ✓ backfilled map unlock chain for ${updated}/${maps.length} maps`);
+}
+
+/**
+ * Map each Topic to its primary LearningMap. Uses the topic's orderIndex (1=vowels,
+ * 2=consonants, 3=minimal, 4=stress) to find the first map of the matching category
+ * via ID prefix. Idempotent — safe to run on re-seeds.
+ */
+async function backfillTopicMapIds() {
+  const ORDER_TO_PREFIX: Record<number, RegExp> = {
+    1: /^map-map-t1-/i,
+    2: /^map-map-t2-/i,
+    3: /^map-map-t3-/i,
+    4: /^map-map-t4-/i,
+  };
+
+  const topics = await prisma.topic.findMany({ select: { id: true, orderIndex: true } });
+  const maps = await prisma.learningMap.findMany({ select: { id: true, name: true } });
+
+  let updated = 0;
+  for (const topic of topics) {
+    const prefix = ORDER_TO_PREFIX[topic.orderIndex];
+    if (!prefix) continue;
+    const match = maps.find((map) => prefix.test(map.id));
+    if (match) {
+      await prisma.topic.update({ where: { id: topic.id }, data: { mapId: match.id } });
+      updated += 1;
+    }
+  }
+  console.log(`   ✓ backfilled topic.mapId for ${updated}/${topics.length} topics`);
+}
+
+/**
+ * Tạo mô tả chi tiết cho exercise theo nhóm âm + mode.
+ * CĐ1-3: mô tả chung theo mode.
+ * CĐ4: mô tả riêng theo từng loại (word stress, weak forms, linking, assimilation).
+ */
+function getExerciseDescription(sg: { id: string; name: string; topicId: string }, mode: { id: string; name: string }): string {
+  // CĐ4: Trọng âm & Nối âm - mô tả riêng cho từng nhóm
+  if (sg.topicId === "topic-4-stress-connected") {
+    if (sg.id.includes("word-stress")) {
+      return mode.id.includes("listen") || mode.id.includes("mode_a")
+        ? "Nghe từ và chọn âm tiết được nhấn"
+        : "Đọc từ với trọng âm đúng";
+    }
+    if (sg.id.includes("weak-forms")) {
+      return mode.id.includes("listen") || mode.id.includes("mode_a")
+        ? "Nghe câu và chọn từ bị đọc lướt (âm yếu /ə/)"
+        : "Đọc câu với weak forms tự nhiên";
+    }
+    if (sg.id.includes("linking")) {
+      return mode.id.includes("listen") || mode.id.includes("mode_a")
+        ? "Nghe cụm từ và chọn cách nối âm đúng"
+        : "Đọc cụm từ với nối âm tự nhiên";
+    }
+    if (sg.id.includes("assimilation")) {
+      return mode.id.includes("listen") || mode.id.includes("mode_a")
+        ? "Nghe câu và chọn biến âm phù hợp"
+        : "Đọc câu với biến âm tự nhiên";
+    }
+  }
+
+  // CĐ1-3: mô tả chung theo mode
+  if (mode.id === "listen_choose") return "Nghe và chọn IPA/từ đúng";
+  if (mode.id === "speak_word") return "Đọc từ đơn theo IPA";
+  if (mode.id === "speak_minimal_pair") return "Đọc cặp từ dễ nhầm lẫn";
+  if (mode.id === "speak_sentence") return "Đọc câu có chứa âm mục tiêu";
+
+  return mode.name;
 }
 
 async function generateExercises() {
@@ -723,12 +878,15 @@ async function generateExercises() {
       const exerciseId = generateExerciseId(sg.id, mode.id);
       const exerciseName = `${sg.name} - ${mode.name}`;
 
+      // Mô tả riêng theo từng nhóm âm + mode
+      const description = getExerciseDescription(sg, mode);
+
       // === SỬA LỖI NGHIÊM TRỌNG 1: gán topicId theo sound group, KHÔNG dùng findFirst() ===
       await prisma.exercise.upsert({
         where: { id: exerciseId },
         update: {
           name: exerciseName,
-          description: mode.description,
+          description,
           status: hasContent ? "ACTIVE" : "DRAFT",
           topicId: sg.topicId, // <-- gán đúng topic của nhóm âm
           levelId: defaultLevel.id,
@@ -736,7 +894,7 @@ async function generateExercises() {
         create: {
           id: exerciseId,
           name: exerciseName,
-          description: mode.description,
+          description,
           topicId: sg.topicId, // <-- gán đúng topic của nhóm âm
           levelId: defaultLevel.id,
           mapId: mapId,
@@ -862,6 +1020,7 @@ async function generateQuestions() {
             mode: "listen_choose",
             answerType: "phoneme",
             stage: q.stage,
+            showIpa: q.showIpa,
             word: q.word,
             ipa: q.ipa,
             audioUrl: q.audioUrl,

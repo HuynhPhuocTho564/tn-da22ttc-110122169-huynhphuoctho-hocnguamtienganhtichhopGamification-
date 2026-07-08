@@ -225,6 +225,99 @@ export function calculateWordErrorRate(expected: string, actual: string): number
  */
 export const calculateWordOverlapAccuracy = calculateWordErrorRate;
 
+export type AlignedWord = {
+  word: string;
+  status: "correct" | "substitution" | "deletion" | "insertion";
+};
+
+/**
+ * Align reference and hypothesis words using Levenshtein backtracking.
+ * Returns each hypothesis word tagged as correct/substitution/insertion,
+ * plus each reference word tagged as correct/substitution/deletion.
+ *
+ * Used for word-by-word color highlighting in speak exercises.
+ */
+export function alignWords(reference: string, hypothesis: string): {
+  refWords: AlignedWord[];
+  hypWords: AlignedWord[];
+  accuracy: number;
+} {
+  const refTokens = tokenize(reference);
+  const hypTokens = tokenize(hypothesis);
+
+  const m = refTokens.length;
+  const n = hypTokens.length;
+
+  if (m === 0 && n === 0) {
+    return { refWords: [], hypWords: [], accuracy: 100 };
+  }
+  if (m === 0) {
+    return {
+      refWords: [],
+      hypWords: hypTokens.map((w) => ({ word: w, status: "insertion" as const })),
+      accuracy: 0,
+    };
+  }
+  if (n === 0) {
+    return {
+      refWords: refTokens.map((w) => ({ word: w, status: "deletion" as const })),
+      hypWords: [],
+      accuracy: 0,
+    };
+  }
+
+  // Build DP matrix
+  const d: number[][] = Array.from({ length: m + 1 }, () =>
+    new Array<number>(n + 1).fill(0),
+  );
+  for (let i = 0; i <= m; i++) d[i][0] = i;
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const matchCost = refTokens[i - 1] === hypTokens[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1,
+        d[i][j - 1] + 1,
+        d[i - 1][j - 1] + matchCost,
+      );
+    }
+  }
+
+  // Backtrack to build alignment (reverse order)
+  const refResult: AlignedWord[] = [];
+  const hypResult: AlignedWord[] = [];
+  let i = m;
+  let j = n;
+
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (refTokens[i - 1] === hypTokens[j - 1] ? 0 : 1)) {
+      if (refTokens[i - 1] === hypTokens[j - 1]) {
+        refResult.push({ word: refTokens[i - 1], status: "correct" });
+        hypResult.push({ word: hypTokens[j - 1], status: "correct" });
+      } else {
+        refResult.push({ word: refTokens[i - 1], status: "substitution" });
+        hypResult.push({ word: hypTokens[j - 1], status: "substitution" });
+      }
+      i--; j--;
+    } else if (i > 0 && d[i][j] === d[i - 1][j] + 1) {
+      refResult.push({ word: refTokens[i - 1], status: "deletion" });
+      i--;
+    } else {
+      hypResult.push({ word: hypTokens[j - 1], status: "insertion" });
+      j--;
+    }
+  }
+
+  refResult.reverse();
+  hypResult.reverse();
+
+  const hits = refResult.filter((w) => w.status === "correct").length;
+  const accuracy = m > 0 ? Math.max(0, Math.round((hits / m) * 100)) : 0;
+
+  return { refWords: refResult, hypWords: hypResult, accuracy };
+}
+
 function scoreMultipleChoice(question: ScoringQuestion, answer: SubmitAnswerInput): QuestionScoreResult {
   const selectedOption = answer.selectedOptionId
     ? question.options.find((option) => option.id === answer.selectedOptionId)

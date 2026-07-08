@@ -1,11 +1,12 @@
 import Image from "next/image";
+import ClaimTreasureButton from "./ClaimTreasureButton";
 
 /**
  * TreasureChest — Rương Kho Báu hôm nay (Octalysis CD2 + CD6 + CD7).
  *
  * Locked state khi chưa hoàn thành TẤT CẢ nhiệm vụ; unlocked khi done hết.
  * Phần thưởng bonus (CD7 — Surprise) được reveal khi mở.
- * Server component — không cần client interactivity.
+ * Server component — ClaimTreasureButton handles client interactivity.
  */
 
 interface TreasureChestProps {
@@ -73,12 +74,7 @@ export default function TreasureChest({
           </p>
         </div>
         {unlocked && (
-          <button
-            type="button"
-            className="shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500"
-          >
-            Nhận thưởng
-          </button>
+          <ClaimTreasureButton unlocked={unlocked} totalCount={totalCount} />
         )}
       </div>
 

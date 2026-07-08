@@ -22,7 +22,6 @@ export default function ListenChooseQuestion({
   selectedAnswer,
   hintTokens = 0,
   onUseHint,
-  muted = false,
 }: {
   question: ExerciseQuestion;
   onAnswer: (isCorrect: boolean, selectedOpt: string, selectedOptionId?: string | null) => void;
@@ -30,7 +29,6 @@ export default function ListenChooseQuestion({
   selectedAnswer: string | null;
   hintTokens?: number;
   onUseHint?: () => void;
-  muted?: boolean;
 }) {
   const [eliminatedIds, setEliminatedIds] = useState<Set<string>>(new Set());
   // Onboarding tooltip — shown once for first-time Listening users (Fix 10).
@@ -67,57 +65,66 @@ export default function ListenChooseQuestion({
   const stage = contentData.stage ?? 1;
   const isPhonemeMode = contentData.answerType === "phoneme";
 
-  // Phoneme mode: option = contrastPhonemes (N nút IPA). Word mode (cũ): option = contentData.options.
-  const options = isPhonemeMode
-    ? (contentData.contrastPhonemes ?? []).map((ph, i) => ({
-        id: `${question.id}-ph-${i}`,
-        content: ph,
-      }))
-    : (question.options.length > 0
-        ? question.options
-        : contentData.options
-            ?.map((option, index) => ({
-              id: String(option.id ?? `${question.id}-json-option-${index}`),
-              content: String(option.text ?? option.content ?? ""),
-            }))
-            .filter((option) => option.content.length > 0) ?? []);
+  // Exact-match cho phoneme (IPA không normalize được), normalize cho word.
+  const checkCorrect = useCallback(
+    (optContent: string) =>
+      isPhonemeMode ? optContent === question.answer : normalizeAnswer(optContent) === normalizeAnswer(question.answer),
+    [isPhonemeMode, question.answer],
+  );
 
-  // Inline audio playback (was AudioButton component, repurposed as the big central speaker).
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Phoneme mode: option = contrastPhonemes (N nút IPA). Word mode (cũ): option = contentData.options.
+  const options = useMemo(() => {
+    return isPhonemeMode
+      ? (contentData.contrastPhonemes ?? []).map((ph, i) => ({
+          id: `${question.id}-ph-${i}`,
+          content: ph,
+        }))
+      : (question.options.length > 0
+          ? question.options
+          : contentData.options
+              ?.map((option, index) => ({
+                id: String(option.id ?? `${question.id}-json-option-${index}`),
+                content: String(option.text ?? option.content ?? ""),
+              }))
+              .filter((option) => option.content.length > 0) ?? []);
+  }, [isPhonemeMode, contentData.contrastPhonemes, contentData.options, question.id, question.options]);
+
+  // Inline audio playback — fresh Audio per play() to avoid ended-state issues.
   const [isPlaying, setIsPlaying] = useState(false);
 
   const playAudio = useCallback(() => {
-    if (muted) return;
     if (!contentData.audioUrl) return;
-    if (!audioRef.current) {
-      audioRef.current = new Audio(contentData.audioUrl);
-      audioRef.current.onended = () => setIsPlaying(false);
-    }
+    const audio = new Audio(contentData.audioUrl);
+    audio.onended = () => setIsPlaying(false);
     setIsPlaying(true);
-    const playPromise = audioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.warn("Audio playback failed:", error);
-        setIsPlaying(false);
-      });
-    }
-  }, [contentData.audioUrl, muted]);
+    audio.play().catch((error) => {
+      console.warn("Audio playback failed:", error);
+      setIsPlaying(false);
+    });
+  }, [contentData.audioUrl]);
 
-  // Autoplay with 1000ms delay (Fix 11) — respects global mute toggle (Fix 1/9).
+  // Auto-play audio khi chuyển câu mới (sau lần click đầu tiên user gesture được browser ghi nhận).
+  const autoPlayRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => {
+    autoPlayRef.current?.pause();
+    autoPlayRef.current = null;
     if (!contentData.audioUrl) return;
-    const timer = window.setTimeout(() => {
-      if (muted) return;
-      if (typeof window === "undefined") return;
-      const audio = new Audio(contentData.audioUrl!);
-      audio.play().catch((error) => console.warn("Autoplay prevented:", error));
-    }, 1000);
-    return () => window.clearTimeout(timer);
-  }, [contentData.audioUrl, question.id, muted]);
-
-  // Exact-match cho phoneme (IPA không normalize được), normalize cho word.
-  const checkCorrect = (optContent: string) =>
-    isPhonemeMode ? optContent === question.answer : normalizeAnswer(optContent) === normalizeAnswer(question.answer);
+    const audio = new Audio(contentData.audioUrl);
+    audio.onended = () => setIsPlaying(false);
+    autoPlayRef.current = audio;
+    let cancelled = false;
+    audio.play().then(() => {
+      if (!cancelled) setIsPlaying(true);
+    }).catch(() => {
+      if (!cancelled) setIsPlaying(false);
+    });
+    return () => {
+      cancelled = true;
+      audio.pause();
+      audio.onended = null;
+      autoPlayRef.current = null;
+    };
+  }, [question.id, contentData.audioUrl]);
 
   // Stage 2 skeleton: split theo "_" và highlight ô trống màu warning.
   const skeletonParts = contentData.skeleton ? contentData.skeleton.split("_") : [];
@@ -194,6 +201,14 @@ export default function ListenChooseQuestion({
       )}
 
       <div className="flex flex-col items-center gap-4">
+        {/* Stage 1 (I do): hiện từ, không hiện IPA */}
+        {stage === 1 && contentData.word && (
+          <h2 className="text-3xl font-bold text-cyan-900 sm:text-4xl" aria-label={contentData.word}>
+            {contentData.word}
+          </h2>
+        )}
+
+        {/* Stage 2 (We do): hiện skeleton IPA khuyết */}
         {stage === 2 && contentData.skeleton && (
           <h2 className="font-ipa text-3xl font-bold text-cyan-900 sm:text-4xl" aria-label={`IPA khuyết: ${contentData.skeleton}`}>
             {skeletonParts.map((part, i, arr) => (
@@ -262,22 +277,22 @@ export default function ListenChooseQuestion({
             }
 
             let buttonClass = "border-stone-300 bg-white text-slate-900 hover:border-cyan-700 hover:bg-cyan-50 hover:text-cyan-950 hover:shadow-[0_0_20px_rgba(14,116,144,0.3)]";
-            let statusIcon = "";
             if (isAnswered) {
               if (checkCorrect(option.content)) {
                 buttonClass = "border-success-500 bg-success-50 text-success-700 ring-4 ring-success-100";
-                statusIcon = "✓";
               } else if (option.content === selectedAnswer) {
                 buttonClass = "border-error-500 bg-error-50 text-error-700 shadow-[0_0_25px_rgba(244,63,94,0.4)] animate-shake";
-                statusIcon = "✗";
               } else {
                 buttonClass = "border-neutral-200 bg-neutral-50 text-neutral-400";
               }
+            } else if (selectedAnswer === option.content) {
+              // Chưa submit nhưng đã chọn — highlight pending
+              buttonClass = "border-cyan-500 bg-cyan-50 text-cyan-900 ring-2 ring-cyan-300";
             }
 
             const keyboardHint = optionIndex < 9 ? ` (phím ${optionIndex + 1})` : "";
             const a11yLabel = isAnswered
-              ? `${option.content} — ${statusIcon === "✓" ? "Đúng" : statusIcon === "✗" ? "Sai" : ""}`
+              ? `${option.content} — ${checkCorrect(option.content) ? "Đúng" : option.content === selectedAnswer ? "Sai" : ""}`
               : `${option.content}${keyboardHint}`;
 
             return (
@@ -297,7 +312,6 @@ export default function ListenChooseQuestion({
                 className={`flex-1 max-w-[14rem] h-20 sm:h-24 rounded-xl border-2 px-4 sm:px-6 font-ipa text-2xl sm:text-3xl font-bold transition-all active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-700 ${buttonClass}`}
               >
                 {option.content}
-                {statusIcon && <span className="ml-1 text-lg" aria-hidden="true">{statusIcon}</span>}
               </button>
             );
           })}

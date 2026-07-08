@@ -31,7 +31,7 @@ export function nextComboStateOnCorrect(state: ComboState): ComboState {
   return { combo: nextCombo, praise };
 }
 
-export function nextComboStateOnWrong(state: ComboState): ComboState {
+export function nextComboStateOnWrong(_state: ComboState): ComboState {
   return { combo: 0, praise: null };
 }
 

@@ -37,7 +37,9 @@ export async function GET() {
       },
     });
 
-    return apiSuccess({ topics: topics.map(serializeTopic) });
+    return apiSuccess({
+      topics: topics.map(serializeTopic),
+    });
   } catch (error) {
     console.error("Admin list topics error:", error);
     return apiFailure("INTERNAL_ERROR", "Lỗi server khi lấy chủ đề", 500);

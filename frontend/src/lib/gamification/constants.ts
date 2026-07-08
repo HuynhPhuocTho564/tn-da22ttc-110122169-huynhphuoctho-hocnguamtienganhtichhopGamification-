@@ -80,7 +80,7 @@ export const DAILY_REWARD_CYCLE_DAYS = 7;
 // === Speech Recording ===
 // SpeakWordQuestion auto-stop sau RECORDING_LIMIT_SECONDS giây.
 // Phải khớp với setTimeout trong SpeakWordQuestion.startRecording().
-export const RECORDING_LIMIT_SECONDS = 5;
+export const RECORDING_LIMIT_SECONDS = 3;
 
 // === Shop: EXP Boost ===
 // Số bài liên tiếp được nhân EXP khi mua Sách Thần.

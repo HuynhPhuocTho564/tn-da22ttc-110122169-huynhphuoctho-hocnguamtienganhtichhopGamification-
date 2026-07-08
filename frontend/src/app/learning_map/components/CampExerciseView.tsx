@@ -12,10 +12,9 @@ import Link from "next/link";
 import { Headphones, Mic, Rocket, Swords } from "lucide-react";
 import Badge, { type BadgeVariant } from "@/components/ui/Badge";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { getBiomeForTopic } from "../utils/islandUtils";
 import { CAMP_STATE_ICONS } from "../constants/islands";
 import type { CampData, ExerciseUI } from "../types/island";
-import { getStarsFromScore, getStarsDisplay } from "@/lib/gamification/scoring-helpers";
+import { getStarsFromScore } from "@/lib/gamification/scoring-helpers";
 
 interface CampExerciseViewProps {
   readonly camp: CampData;
@@ -41,6 +40,7 @@ function getStatusLabel(status: string): string {
 function getExerciseIconAndLabel(exercise: { id: string; name: string }): {
   Icon: typeof Headphones;
   color: string;
+  ctaColor: string;
   label: string;
 } {
   const id = exercise.id.toLowerCase();
@@ -48,16 +48,16 @@ function getExerciseIconAndLabel(exercise: { id: string; name: string }): {
 
   // Specific matches FIRST so "speak_sentence" doesn't fall to "speak" → Mic.
   if (id.includes("listen") || name.includes("luyện tai") || name.includes("nghe & chọn")) {
-    return { Icon: Headphones, color: "text-blue-500", label: "Luyện tai" };
+    return { Icon: Headphones, color: "text-blue-500", ctaColor: "border-blue-300 bg-blue-100 text-blue-800", label: "Luyện tai" };
   }
   if (id.includes("sentence") || id.includes("real") || name.includes("thực chiến")) {
-    return { Icon: Rocket, color: "text-purple-500", label: "Thực chiến" };
+    return { Icon: Rocket, color: "text-purple-500", ctaColor: "border-purple-300 bg-purple-100 text-purple-800", label: "Thực chiến" };
   }
   if (id.includes("minimal") || id.includes("challenge") || name.includes("thử thách")) {
-    return { Icon: Swords, color: "text-amber-500", label: "Thử thách kép" };
+    return { Icon: Swords, color: "text-amber-500", ctaColor: "border-amber-300 bg-amber-100 text-amber-800", label: "Thử thách kép" };
   }
   // Fallback: speak_word (Luyện miệng) hoặc không nhận diện được.
-  return { Icon: Mic, color: "text-emerald-500", label: "Luyện miệng" };
+  return { Icon: Mic, color: "text-emerald-500", ctaColor: "border-emerald-300 bg-emerald-100 text-emerald-800", label: "Luyện miệng" };
 }
 
 /**
@@ -78,56 +78,39 @@ function getShortLabel(score: number): string {
 
 export default function CampExerciseView({
   camp,
-  islandTopicId,
+  islandTopicId: _islandTopicId,
   onBack,
 }: CampExerciseViewProps) {
-  const biome = getBiomeForTopic(islandTopicId);
   const headingRef = useRef<HTMLHeadingElement>(null);
   // nielsen H2 + WCAG 2.4.3: focus the heading on mount AND when the camp
   // changes, so keyboard/screen-reader users land in the right context.
   useEffect(() => {
-    headingRef.current?.focus();
+    headingRef.current?.focus({ preventScroll: true });
   }, [camp.mapId]);
 
   return (
     <div className="animate-slide-up-panel">
-      {/* Back button */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-6 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-base font-bold text-neutral-900 shadow-sm border border-neutral-300 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500"
-        aria-label="Quay lại đảo"
-      >
-        <span aria-hidden="true">←</span> Quay lại
-      </button>
-
-      {/* Camp header */}
-      <section className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl" aria-hidden="true">{CAMP_STATE_ICONS[camp.state]}</span>
-          {camp.requirement && (
-            <Badge variant="info" size="sm">{camp.requirement}</Badge>
-          )}
-          <Badge variant={getStatusVariant(camp.status)} size="sm">
-            {getStatusLabel(camp.status)}
-          </Badge>
+      {/* Camp header — lighter variant of island header */}
+      <section className="mb-8 rounded-2xl bg-gradient-to-r from-primary-50 to-primary-100/60 p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 ref={headingRef} tabIndex={-1} className="text-3xl font-bold tracking-tight text-neutral-900 focus:outline-none">
+              {camp.name}
+            </h1>
+            <p className="mt-1 text-sm font-medium text-neutral-600">
+              {camp.completedExercises}/{camp.totalExercises} bài tập hoàn thành
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-primary-800">{camp.completionPercent}%</div>
+          </div>
         </div>
-        <h1 ref={headingRef} tabIndex={-1} className="text-4xl font-bold tracking-tight text-neutral-900 focus:outline-none">
-          {camp.name}
-        </h1>
-        <p className="mt-2 text-base font-normal text-neutral-900">
-          Chọn dạng bài để luyện phát âm.
-        </p>
-        <p className="mt-1 text-sm font-normal text-neutral-900">
-          {camp.totalExercises} bài tập · {camp.completedExercises} đã đạt từ 60 điểm
-        </p>
-        <div className="mt-4 max-w-md">
+        <div className="mt-3">
           <ProgressBar
             value={camp.completedExercises}
             max={Math.max(camp.totalExercises, 1)}
-            label={`${camp.completedExercises}/${camp.totalExercises} bài hoàn thành`}
             color={camp.state === "completed" ? "success" : "primary"}
-            showPercentage={camp.totalExercises > 0}
+            showPercentage={false}
           />
         </div>
       </section>
@@ -163,7 +146,7 @@ function ExerciseCard({
   mapStatus: string;
 }) {
   const isActive = mapStatus === "ACTIVE" && exercise.status === "ACTIVE";
-  const { Icon, color, label } = getExerciseIconAndLabel(exercise);
+  const { Icon, color, ctaColor, label } = getExerciseIconAndLabel(exercise);
 
   const content = (
     <>
@@ -220,7 +203,7 @@ function ExerciseCard({
 
       <div className={`mt-4 rounded-lg border-2 px-4 py-2.5 text-base font-bold text-center ${
         isActive
-          ? "border-primary-300 bg-primary-100 text-primary-800"
+          ? ctaColor
           : "border-neutral-900 bg-neutral-900 text-white"
       }`}>
         {isActive ? "Bắt đầu luyện tập →" : "Nội dung chưa sẵn sàng"}
@@ -243,24 +226,5 @@ function ExerciseCard({
     >
       {content}
     </Link>
-  );
-}
-
-/**
- * StarsBadge — hiển thị điểm + sao theo rule 60-80-90 (Micro level).
- * - 0 sao: amber-700 (warning variant) — "Chưa đạt sao"
- * - 1 sao: default variant — "1 Sao — Pass"
- * - 2-3 sao: success variant — "Giỏi / Hoàn hảo"
- */
-function StarsBadge({ score }: { score: number }) {
-  const stars = getStarsFromScore(score);
-  const display = getStarsDisplay(stars);
-  const variant: BadgeVariant = stars >= 2 ? "success" : stars === 1 ? "default" : "warning";
-  return (
-    <Badge variant={variant} size="sm" className="gap-1">
-      <span className={display.colorClass} aria-hidden="true">{display.emoji}</span>
-      <span>{score}/100</span>
-      <span className="text-xs opacity-80">— {display.label}</span>
-    </Badge>
   );
 }

@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   const userId = session.user.id;
 
   // Lấy user + attempts gần nhất (chỉ cần ~50 thay vì 200 — không còn SkillRadar).
-  const [user, recentAttempts, exercises, unclaimedMilestones] = await Promise.all([
+  const [user, recentAttempts, exercises] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -75,7 +75,6 @@ export default async function DashboardPage() {
         map: { select: { name: true } }, // Bổ sung: tên "đảo" cho Hero Card context
       },
     }),
-    getUnclaimedMilestones(userId, 0), // level truyền tạm 0 — sẽ update sau khi có user
   ]);
 
   if (!user) {
@@ -118,19 +117,6 @@ export default async function DashboardPage() {
     level >= 100
       ? 100
       : Math.min(100, Math.round(((xp - previousLevelXp) / (nextLevelXp - previousLevelXp)) * 100));
-
-  // navLinks giữ lại để dùng cho Quick Links + sidebar (nếu có)
-  const navLinks = [
-    { href: "/dashboard", label: "📊 Tổng quan", active: true },
-    { href: "/exercises", label: "📚 Bài tập" },
-    { href: "/learning_map", label: "🗺️ Lộ trình" },
-    { href: "/checkin", label: "📅 Điểm danh" },
-    { href: "/badges", label: "🏅 Huy hiệu" },
-    { href: "/leaderboard", label: "🏆 Bảng xếp hạng" },
-    { href: "/shop", label: "🛒 Cửa hàng" },
-    { href: "/inventory", label: "🎒 Kho vật phẩm" },
-    { href: "/profile", label: "👤 Hồ sơ" },
-  ];
 
   return (
     <OnboardingGate>

@@ -11,7 +11,7 @@ import {
 import { formatLocalDate, startOfLocalDay } from "@/lib/period";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const userId = await getAuthenticatedUserId();
 

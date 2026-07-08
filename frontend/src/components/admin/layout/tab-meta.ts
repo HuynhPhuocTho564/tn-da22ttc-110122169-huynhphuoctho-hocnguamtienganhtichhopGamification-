@@ -17,10 +17,56 @@ export const tabMeta: Record<AdminTab, TabMeta> = {
     title: "Người dùng",
     description: "Quản trị tài khoản thật trong hệ thống, role và trạng thái hoạt động.",
   },
-  exercises: {
-    title: "Bài tập",
-    description: "Quản lý bài luyện phát âm, câu hỏi gắn kèm và ngân hàng câu hỏi.",
+  reports: {
+    title: "Báo cáo",
+    description: "Xem thống kê học tập, điểm trung bình và bài tập được làm nhiều.",
   },
+  
+  // Maps (4 tabs - horizontal navigation; stress_linking has nested sub-tabs)
+  map_vowels: {
+    title: "Nguyên âm",
+    description: "Quản lý sound group và bài tập thuộc chủ đề Nguyên âm.",
+  },
+  map_consonants: {
+    title: "Phụ âm",
+    description: "Quản lý map phụ âm, topics và exercises liên quan.",
+  },
+  map_minimal_pairs: {
+    title: "Minimal Pairs Khó",
+    description: "Quản lý map minimal pairs khó, topics và exercises liên quan.",
+  },
+  map_stress_linking: {
+    title: "Trọng âm & Nối âm",
+    description: "Quản lý bài tập về trọng âm và nối âm.",
+  },
+  
+  // Gamification (6 dropdown items)
+  badges: {
+    title: "Huy hiệu",
+    description: "Quản trị huy hiệu, rarity, điều kiện unlock và rewards.",
+  },
+  xp_levels: {
+    title: "XP & Cấp độ",
+    description: "Cấu hình công thức XP, level progression, milestones và XP sources.",
+  },
+  gems_economy: {
+    title: "Gems & Economy",
+    description: "Theo dõi gems circulation, sources/sinks balance và economy health.",
+  },
+  shop_items: {
+    title: "Cửa hàng",
+    description: "Quản lý shop items, inventory, power-ups và lucky wheel (future).",
+  },
+  streaks_quests: {
+    title: "Streak & Daily Quests",
+    description: "Cấu hình streak mechanics, daily quest templates và rewards.",
+  },
+  leaderboard: {
+    title: "Bảng xếp hạng",
+    description: "Xem weekly leaderboard snapshots và export history.",
+  },
+  
+  // Legacy tabs (to be migrated/removed)
   topics: {
     title: "Nội dung học tập",
     description: "Tổ chức chủ đề, bản đồ học tập, âm IPA, nhóm âm, từ vựng và câu luyện đọc.",
@@ -53,28 +99,8 @@ export const tabMeta: Record<AdminTab, TabMeta> = {
     title: "Âm thanh",
     description: "Kiểm tra file audio, giới hạn phát và nơi đang được dùng.",
   },
-  badges: {
-    title: "Huy hiệu",
-    description: "Quản trị huy hiệu, điều kiện nhận và phần thưởng tạo động lực học.",
-  },
-  xp_level: {
-    title: "XP & Cấp độ",
-    description: "Cấu hình công thức XP, ngưỡng lên cấp và hệ số nhân.",
-  },
-  gems_streak: {
-    title: "Gems & Streak",
-    description: "Cấu hình phần thưởng Gems, bùa đóng băng streak và chu kỳ check-in.",
-  },
-  daily_quest: {
-    title: "Daily Quest",
-    description: "Cấu hình nhiệm vụ hàng ngày, mục tiêu và phần thưởng.",
-  },
   lucky_wheel: {
-    title: "Vòng quay may mắn",
-    description: "Cấu hình vòng quay, các ô phần thưởng và xác suất trúng.",
-  },
-  reports: {
-    title: "Báo cáo",
-    description: "Xem thống kê học tập, điểm trung bình và bài tập được làm nhiều.",
+    title: "Spin Wheel",
+    description: "Cấu hình 8 ô prize + trọng số, xem lịch sử quay (SpinWheelLog).",
   },
 };

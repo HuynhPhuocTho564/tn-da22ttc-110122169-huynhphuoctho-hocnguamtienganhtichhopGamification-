@@ -11,6 +11,10 @@ function serializeMap(map: {
   name: string;
   requirement: string | null;
   status: string;
+  subcategory: string | null;
+  requiredMapId: string | null;
+  unlockThresholdPercent: number;
+  requiredMap: { id: string; name: string } | null;
   _count: {
     exercises: number;
     progresses: number;
@@ -21,6 +25,10 @@ function serializeMap(map: {
     name: map.name,
     requirement: map.requirement,
     status: map.status,
+    subcategory: map.subcategory,
+    requiredMapId: map.requiredMapId,
+    requiredMapName: map.requiredMap?.name ?? null,
+    unlockThresholdPercent: map.unlockThresholdPercent,
     exerciseCount: map._count.exercises,
     progressCount: map._count.progresses,
   };
@@ -40,8 +48,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const name = body.name === undefined ? undefined : readRequiredString(body, "name", 255);
     const requirement = readNullableString(body, "requirement", 1000);
     const status = readOptionalStatus(body.status, MAP_STATUSES);
+    const subcategory = readNullableString(body, "subcategory", 255);
 
-    if (name === null || requirement === false || status === null) {
+    if (name === null || requirement === false || status === null || subcategory === false) {
       return apiFailure("VALIDATION_ERROR", "Dữ liệu cập nhật learning map không hợp lệ", 400);
     }
 
@@ -56,8 +65,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         ...(name !== undefined ? { name } : {}),
         ...(requirement !== undefined ? { requirement } : {}),
         ...(status !== undefined ? { status } : {}),
+        ...(subcategory !== undefined ? { subcategory } : {}),
       },
       include: {
+        requiredMap: { select: { id: true, name: true } },
         _count: {
           select: {
             exercises: true,
@@ -91,6 +102,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
         status: "ARCHIVED",
       },
       include: {
+        requiredMap: { select: { id: true, name: true } },
         _count: {
           select: {
             exercises: true,

@@ -42,7 +42,7 @@ type LeaderboardData = {
   type: "tuan";
   period: string;
   items: LeaderboardItem[];
-  currentUser: { rank: number; score: number; currentTier?: string } | null;
+  currentUser: { rank: number; score: number; currentTier: string; level: number; xp: number };
   totalPlayers: number;
   tierFilter: string | null;
   promotionCount: number;
@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
   const userTierDisplay = isValidTier(userTier) ? TIER_DISPLAY[userTier] : null;
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-10 px-4 pb-24 sm:px-6 lg:px-8">
       {/* Tier Promotion Banner (shows after season transition) */}
       <TierPromotionBanner />
 
@@ -172,33 +172,33 @@ export default function LeaderboardPage() {
           })}
         </div>
 
-        {/* ═══ 3. "Thứ hạng của bạn" — Inline ngay sau Tabs (theo spec Minimalism) ═══ */}
-        {data?.currentUser && userTierDisplay && (
-          <Card className="mb-6 border border-slate-200 bg-white">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="font-bold text-neutral-900 flex items-center gap-2 flex-wrap">
-                  Thứ hạng của bạn
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold ${userTierDisplay.badgeClass}`}
-                  >
-                    {userTierDisplay.icon} {userTierDisplay.name}
-                  </span>
-                </div>
-                <div className="text-sm text-neutral-600">
-                  Tuần {data.period}
+        {/* ═══ 3. "Thứ hạng của bạn" — Sticky bottom bar ═══ */}
+        {data && userTierDisplay && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+            <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold ${userTierDisplay.badgeClass}`}
+                >
+                  {userTierDisplay.icon} {userTierDisplay.name}
+                </span>
+                <div>
+                  <div className="font-bold text-neutral-900">Thứ hạng của bạn</div>
+                  <div className="text-xs text-neutral-500">Cấp {data.currentUser.level} · {(data.currentUser.xp ?? 0).toLocaleString("vi-VN")} XP</div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-primary-600 tabular-nums">
-                  #{data.currentUser.rank}
+                  {data.currentUser.rank > 0 ? `#${data.currentUser.rank}` : "—"}
                 </div>
                 <div className="text-xs text-neutral-600">
-                  {data.currentUser.score.toLocaleString("vi-VN")} điểm
+                  {data.currentUser.score > 0
+                    ? `${data.currentUser.score.toLocaleString("vi-VN")} điểm hạng`
+                    : "Chưa có điểm tuần này"}
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* ═══ Loading / Error ═══ */}
@@ -297,11 +297,8 @@ export default function LeaderboardPage() {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-neutral-600 flex flex-wrap items-center gap-x-3 gap-y-1">
-                                <span>Cấp {user.level}</span>
-                                <span>{user.completedExercises} bài</span>
-                                <span>{user.correctAnswers} câu đúng</span>
-                                <span>{user.streak} ngày streak</span>
+                              <div className="text-sm text-neutral-600">
+                                Cấp {user.level}
                               </div>
                             </div>
                           </div>

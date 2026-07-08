@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { getInitials } from "./admin-utils";
 import type { AdminIdentity } from "./types";
 
@@ -53,10 +53,6 @@ export default function AdminTopbar({
         </label>
 
         <div className="ml-auto flex items-center gap-3 md:ml-0">
-          <div className="hidden items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 sm:flex">
-            <Activity aria-hidden="true" className="h-4 w-4" />
-            Live DB
-          </div>
           <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-white">
               {getInitials(adminName)}

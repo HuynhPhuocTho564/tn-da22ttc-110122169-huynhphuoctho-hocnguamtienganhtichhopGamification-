@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSpeechRecognition, SpeechState } from "@/hooks/useSpeechRecognition";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 
 interface RecordButtonProps {
   expectedAnswer: string;

@@ -60,22 +60,29 @@ export default function QuestionRenderer({
           selectedAnswer={selectedAnswer}
           hintTokens={unlocks.hintTokens}
           onUseHint={onUseHint}
-          muted={muted}
         />
       );
 
-    case "qtype-2-voice":
-      return parseWordPrompt(question.content).word ? (
-        <SpeakWordQuestion key={question.id} question={question} onNext={onNextVoice} />
-      ) : (
-        <SpeakSentenceQuestion
-          key={question.id}
-          question={question}
-          onNext={onNextVoice}
-          unlockedSlowAudio={unlocks.unlockedSlowAudio}
-          unlockedIpaReveal={unlocks.unlockedIpaReveal}
-        />
-      );
+    case "qtype-2-voice": {
+      // Check mode field to determine word vs sentence component
+      let mode = "";
+      try {
+        const parsed = JSON.parse(question.content) as { mode?: string };
+        mode = parsed.mode ?? "";
+      } catch { /* ignore */ }
+      if (mode === "speak_sentence") {
+        return (
+          <SpeakSentenceQuestion
+            key={question.id}
+            question={question}
+            onNext={onNextVoice}
+            unlockedSlowAudio={unlocks.unlockedSlowAudio}
+            unlockedIpaReveal={unlocks.unlockedIpaReveal}
+          />
+        );
+      }
+      return <SpeakWordQuestion key={question.id} question={question} onNext={onNextVoice} unlockedSlowAudio={unlocks.unlockedSlowAudio} />;
+    }
 
     case "qtype-3-minimal-pairs":
       return <SpeakMinimalPairsQuestion key={question.id} question={question} onNext={onNextVoice} />;

@@ -5,12 +5,14 @@ import { parseWordPrompt, type ExerciseQuestion } from "./ExerciseEngineClient";
 import { useWaveformRecorder, type RecorderLevel } from "@/hooks/useWaveformRecorder";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { RECORDING_LIMIT_SECONDS } from "@/lib/gamification/constants";
+import { calculateWordOverlapAccuracy } from "@/lib/scoring";
 import IpaPopup from "@/components/ui/IpaPopup";
 import SpeakFeedbackSheet from "./SpeakFeedbackSheet";
 
 type SpeakWordQuestionProps = {
   question: ExerciseQuestion;
   onNext: (correct: boolean, transcript: string) => void;
+  unlockedSlowAudio?: boolean;
 };
 
 // SpeechRecognition types (giống engine)
@@ -27,10 +29,6 @@ function getSpeechCtor(): SpeechRecognitionCtor | null {
   const w = window as Window &
     typeof globalThis & { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-}
-
-function normalizeAnswer(value: string) {
-  return value.toLowerCase().replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ").trim();
 }
 
 // Nút audio (inline, pattern MiniSpeaker/ReplayButton)
@@ -57,12 +55,12 @@ function hintText(level: RecorderLevel): { text: string; color: string } {
   }
 }
 
-export default function SpeakWordQuestion({ question, onNext }: SpeakWordQuestionProps) {
+export default function SpeakWordQuestion({ question, onNext, unlockedSlowAudio = false }: SpeakWordQuestionProps) {
   const contentData = useMemo(() => parseWordPrompt(question.content), [question.content]);
   const [status, setStatus] = useState<"idle" | "recording" | "processing" | "correct" | "incorrect" | "error">("idle");
   const [transcript, setTranscript] = useState("");
   const [showWord, setShowWord] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [, setRetryCount] = useState(0);
   const [speechUnsupported, setSpeechUnsupported] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -85,7 +83,13 @@ export default function SpeakWordQuestion({ question, onNext }: SpeakWordQuestio
     setStatus("processing");
     recorder.stop();
     window.setTimeout(() => {
-      if (normalizeAnswer(recordedText) === normalizeAnswer(question.answer)) setStatus("correct");
+      // v2: Use WER-based scoring (same as server) for partial credit
+      const candidates =
+        question.acceptedAnswers && question.acceptedAnswers.length > 0
+          ? [question.answer, ...question.acceptedAnswers]
+          : [question.answer];
+      const acc = Math.max(...candidates.map((c) => calculateWordOverlapAccuracy(c, recordedText)));
+      if (acc >= 80) setStatus("correct");
       else { setStatus("incorrect"); setRetryCount((c) => c + 1); }
     }, 400);
   };
@@ -148,8 +152,18 @@ export default function SpeakWordQuestion({ question, onNext }: SpeakWordQuestio
         </div>
 
         {/* Tầng 3: Audio phát */}
-        <div className="mb-6 flex justify-center">
+        <div className="mb-6 flex justify-center gap-3">
           <AudioButton audioUrl={contentData.audioUrl} label="🔊 Nghe mẫu" />
+          {unlockedSlowAudio && contentData.audioUrl && (
+            <button type="button" onClick={() => {
+              const audio = new Audio(contentData.audioUrl);
+              audio.playbackRate = 0.5;
+              audio.play().catch((e) => console.warn("slow audio failed:", e));
+            }} aria-label="Nghe chậm x0.5"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-warning-300 bg-warning-50 px-4 py-2 text-sm font-bold text-warning-700 transition-colors hover:bg-warning-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-warning-400">
+              🐢 Nghe chậm x0.5
+            </button>
+          )}
         </div>
 
         {/* Tầng 4: Mic + waveform + hint */}
@@ -240,10 +254,16 @@ export default function SpeakWordQuestion({ question, onNext }: SpeakWordQuestio
                   : "Kiểm tra microphone và thử lại — nói to, rõ, bằng tiếng Anh"}
               </p>
             </div>
-            <button type="button" onClick={startRecording}
-              className="rounded-xl bg-primary-600 px-6 py-3 font-bold text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-300">
-              Thử lại
-            </button>
+            <div className="flex justify-center gap-3">
+              <button type="button" onClick={startRecording}
+                className="rounded-xl bg-primary-600 px-6 py-3 font-bold text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-300">
+                Thử lại
+              </button>
+              <button type="button" onClick={() => onNext(false, "")}
+                className="rounded-xl bg-neutral-200 px-6 py-3 font-bold text-neutral-700 hover:bg-neutral-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-neutral-400">
+                Bỏ qua →
+              </button>
+            </div>
           </div>
         )}
 
@@ -252,6 +272,7 @@ export default function SpeakWordQuestion({ question, onNext }: SpeakWordQuestio
             isCorrect={status === "correct"}
             transcript={transcript}
             answerText={question.answer}
+            ipa={contentData.ipa}
             audioReplay={<AudioButton audioUrl={contentData.audioUrl} label="🔊 Nghe lại mẫu" />}
             onRetry={startRecording}
             onNext={() => onNext(status === "correct", transcript)}

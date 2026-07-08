@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { formatTimeUntilReset, getNextResetTime } from "@/lib/gamification/missions";
+import { formatTimeUntilReset, getNextResetTime } from "@/lib/gamification/missions-helpers";
 
 export default function MissionsCountdown() {
   // Khởi tạo với thời điểm reset hôm nay (giữa đêm local).
@@ -35,7 +35,7 @@ export default function MissionsCountdown() {
 
     const interval = setInterval(tick, 60_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [resetAt]);
 
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-bold text-neutral-900 border border-primary-300">

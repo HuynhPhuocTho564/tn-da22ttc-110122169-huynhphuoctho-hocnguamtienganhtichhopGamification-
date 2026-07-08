@@ -1,15 +1,15 @@
 /**
- * LESSON CATALOG v2 - Nguồn cấu hình duy nhất cho 4 chủ đề, 30 nhóm âm, 112 bài
+ * LESSON CATALOG v2 - Nguồn cấu hình duy nhất cho 4 chủ đề, 38 nhóm âm, bài tập tương ứng
  *
  * Cấu trúc (theo LESSON_SYLLABUS_STRUCTURE.md):
  * - 4 Topics (Chủ đề) với unlock tuần tự 80%
- * - 30 Sound Groups (10 vowels + 12 consonants + 4 minimal-pairs-hard + 4 stress-connected)
+ * - 38 Sound Groups (12 vowels + 14 consonants + 6 minimal-pairs-hard + 6 stress-connected)
  * - 6 Exercise Modes (4 chuẩn cho CĐ1-3 + 2 đặc thù cho CĐ4)
- * - Tổng: 26 nhóm × 4 mode + 4 nhóm × 2 mode = 112 bài
+ * - Tổng: 32 nhóm × 4 mode + 6 nhóm × 2 mode = 140 bài
  *
  * Unlock: CĐ1 mở tự do; CĐ2/3/4 mở khi topic trước hoàn thành ≥80% (trường unlockThresholdPercent).
  *
- * Nguyên tắc: không code 112 bài thủ công. Seed từ catalog -> generate Exercise.
+ * Nguyên tắc: không code bài thủ công. Seed từ catalog -> generate Exercise.
  */
 
 export type TopicDefinition = {
@@ -59,37 +59,37 @@ export const TOPICS: TopicDefinition[] = [
   {
     id: "topic-1-vowels",
     name: "Nguyên âm",
-    description: "Nền tảng phát âm - 10 nhóm nguyên âm (6 đơn + 4 đôi)",
+    description: "Nền tảng phát âm - 12 nhóm nguyên âm",
     orderIndex: 1,
     unlockThresholdPercent: 0,
-    totalSoundGroups: 10,
+    totalSoundGroups: 12,
     color: "blue",
   },
   {
     id: "topic-2-consonants",
     name: "Phụ âm",
-    description: "12 nhóm phụ âm theo 5 tầng (Plosives/Fricatives/Affricates/Nasals/Approximants)",
+    description: "14 nhóm phụ âm theo 5 tầng",
     orderIndex: 2,
     unlockThresholdPercent: 80,
-    totalSoundGroups: 12,
+    totalSoundGroups: 14,
     color: "orange",
   },
   {
     id: "topic-3-minimal-pairs-hard",
     name: "Minimal Pairs Khó",
-    description: "Tổng hợp 4 nhóm cặp âm dễ nhầm nhất (mở khóa sau CĐ2 ≥80%)",
+    description: "6 nhóm cặp âm dễ nhầm nhất",
     orderIndex: 3,
     unlockThresholdPercent: 80,
-    totalSoundGroups: 4,
+    totalSoundGroups: 6,
     color: "red",
   },
   {
     id: "topic-4-stress-connected",
     name: "Trọng âm & Nối âm",
-    description: "4 nhóm đặc thù: Word Stress, Weak Forms, Linking, Assimilation (mở khóa sau CĐ3 ≥80%)",
+    description: "6 nhóm đặc thù: Word Stress, Weak Forms, Linking, Assimilation + 2 bổ sung",
     orderIndex: 4,
     unlockThresholdPercent: 80,
-    totalSoundGroups: 4,
+    totalSoundGroups: 6,
     color: "purple",
   },
 ];
@@ -140,17 +140,17 @@ export const EXERCISE_MODES: ExerciseModeDefinition[] = [
   },
   {
     id: "mode_a_listen_choose",
-    name: "Nghe & Chọn",
-    description: "Mode A đặc thù CĐ4: nghe → chọn (tap stress / weak form / linking / assimilation)",
-    questionTypeId: "qtype-2-voice", // placeholder, mỗi nhóm CĐ4 override questionTypeId cụ thể khi seed (SP3)
+    name: "Luyện tai",
+    description: "Nghe và nhận diện: trọng âm từ, âm yếu, nối âm, biến âm",
+    questionTypeId: "qtype-2-voice",
     orderIndex: 5,
     icon: "🎧",
     appliesToTopics: STRESS_TOPIC_IDS,
   },
   {
     id: "mode_b_speak_match",
-    name: "Đọc & So khớp",
-    description: "Mode B đặc thù CĐ4: đọc → so khớp nhiều dạng (acceptedAnswers)",
+    name: "Luyện miệng",
+    description: "Đọc từ hoặc câu theo chuẩn phát âm bản xứ",
     questionTypeId: "qtype-2-voice",
     orderIndex: 6,
     icon: "🗣️",
@@ -205,6 +205,8 @@ export const SOUND_GROUPS: SoundGroupDefinition[] = [
   { id: "map-t4-g02-weak-forms", topicId: "topic-4-stress-connected", name: "Weak Forms", description: "Âm lướt / từ chức năng - chọn từ đọc lướt /ə/, đọc cả câu", orderIndex: 2, targetPhonemes: ["/ə/"], difficulty: 7, notes: "can/to/for/and/at → /kən/ /tə/ /fə/ /ən/ /ət/", subcategory: null },
   { id: "map-t4-g03-linking", topicId: "topic-4-stress-connected", name: "Linking", description: "Nối âm - nghe cụm & chọn phát âm đúng, đọc cụm", orderIndex: 3, targetPhonemes: [], difficulty: 7, notes: "C+V: hold on → /həʊl dɒn/. C+C: bad dog → /bæ dɒg/.", subcategory: null },
   { id: "map-t4-g04-assimilation", topicId: "topic-4-stress-connected", name: "Assimilation & Elision", description: "Biến âm & nuốt âm - nghe câu tự nhiên & chọn, đọc câu", orderIndex: 4, targetPhonemes: [], difficulty: 8, notes: "/t/+/j/=/tʃ/: meet you → meetcha. /d/+/j/=/dʒ/: did you → didja.", subcategory: null },
+
+  // --- CĐ4 TRỌNG ÂM BỔ SUNG (2 nhóm động vật) ---
 ];
 
 // ============================================================================

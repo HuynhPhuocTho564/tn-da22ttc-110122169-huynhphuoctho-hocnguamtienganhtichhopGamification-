@@ -16,12 +16,13 @@
 import React from "react";
 import { type BadgeRarity, RARITY_STYLES, getBadgeSvgPath } from "@/lib/gamification/badge-icons";
 
-type BadgeSize = "sm" | "md" | "lg";
+type BadgeSize = "sm" | "md" | "lg" | "xl";
 
 const SIZE_CONFIG: Record<BadgeSize, { wrapper: string; icon: number }> = {
   sm: { wrapper: "h-10 w-10", icon: 22 },
   md: { wrapper: "h-14 w-14", icon: 32 },
-  lg: { wrapper: "h-20 w-20", icon: 44 },
+  lg: { wrapper: "h-16 w-16", icon: 44 },
+  xl: { wrapper: "h-20 w-20", icon: 56 },
 } as const;
 
 interface BadgeIconProps {
@@ -45,8 +46,12 @@ export function BadgeIcon({
     console.warn(`[BadgeIcon] No SVG mapping for badge ID: "${badgeId}". Add entry to BADGE_SVG_FILES in badge-icons.ts.`);
   }
 
+  // Nielsen H1: Clear visual distinction between locked/unlocked
+  // Unlocked: full saturation, glow effect
+  // Locked: grayscale + reduced opacity (dopamine hit on unlock)
   const unearnedFilter = earned ? "" : "grayscale opacity-40";
   const glowClass = earned ? style.glow : "";
+  const scaleClass = earned ? "scale-100" : "scale-95";
 
   return (
     <div
@@ -56,11 +61,12 @@ export function BadgeIcon({
         ${sizeConfig.wrapper}
         ${glowClass}
         ${unearnedFilter}
+        ${scaleClass}
         transition-all duration-300
         shrink-0
       `}
       role="img"
-      aria-label={`Huy hiệu ${rarity}: ${badgeId}`}
+      aria-label={earned ? `Huy hiệu đã mở khóa: ${badgeId}` : `Huy hiệu chưa mở khóa: ${badgeId}`}
     >
       {svgPath ? (
         <img
